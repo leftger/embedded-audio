@@ -1,0 +1,80 @@
+#![no_std]
+
+//! Duty-modulated PWM audio for embedded targets: effect banks, tiered DSP, mixing.
+//!
+//! # Quick start
+//!
+//! ```ignore
+//! use embedded_audio::prelude::*;
+//!
+//! let bank = SoundBank::parse(FLASH_BLOB)?;
+//! let mut engine = AudioEngine::new(AudioConfig::default_duty());
+//! engine.set_bank(bank);
+//! engine.play(1, AdsrSpec::click())?;
+//!
+//! // In a timer ISR at `config.sample_rate_hz`:
+//! let duty = engine.tick();
+//! ```
+//!
+//! # Tiers
+//!
+//! | Tier | Source | Use |
+//! |------|--------|-----|
+//! | A | Tone / wavetable / FM synth | UI beeps, alarms |
+//! | B | PCM8 / IMA ADPCM in flash | Sampled SFX |
+//! | C | Packed ΣΔ bitstream | Premium short sounds |
+//!
+//! Build banks on the host with the `eaf-bake` tool (`std` feature).
+
+#[cfg(feature = "std")]
+extern crate std;
+
+pub mod bank;
+pub mod config;
+pub mod decode;
+pub mod engine;
+pub mod envelope;
+pub mod error;
+pub mod fixed;
+pub mod hal;
+pub mod output;
+pub mod prelude;
+pub mod source;
+pub mod stream;
+pub mod synth;
+pub mod tier;
+pub mod voice;
+
+#[cfg(feature = "std")]
+pub mod encode;
+
+#[cfg(feature = "std")]
+pub mod preview;
+
+#[cfg(feature = "fm")]
+pub mod profile;
+
+pub use bank::{BankBuilder, EffectEntry, SoundBank, BANK_BUILD_CAP, BANK_MAGIC, BANK_VERSION};
+pub use config::{
+    crossfade_step_q8, AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD,
+    DEFAULT_SAMPLE_RATE_HZ,
+};
+pub use decode::{AdpcmDecoder, AdpcmStream, Pcm8Stream};
+pub use engine::AudioEngine;
+pub use envelope::{Adsr, AdsrSpec};
+pub use error::AudioError;
+pub use hal::{tick_into, PwmDutySink};
+pub use output::{DutyMode, PwmMapper, SigmaDelta};
+pub use source::VoiceSource;
+pub use stream::SigmaDeltaBitStream;
+pub use synth::{FmVoice, ToneParams, ToneVoice, Waveform, WavetableVoice};
+pub use tier::{flags, EffectKind};
+
+#[cfg(feature = "std")]
+pub use preview::{render_effect_pcm, render_effect_wav};
+
+#[cfg(feature = "fm")]
+pub use output::{FmMapper, FmTick};
+
+#[cfg(feature = "fm")]
+pub use profile::markham;
