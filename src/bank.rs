@@ -162,38 +162,55 @@ impl BankBuilder {
         Ok(())
     }
 
-    pub fn finish(&self, out: &mut heapless::Vec<u8, { BANK_BUILD_CAP }>) -> Result<(), AudioError> {
+    pub fn finish(
+        &self,
+        out: &mut heapless::Vec<u8, { BANK_BUILD_CAP }>,
+    ) -> Result<(), AudioError> {
         out.clear();
         out.extend_from_slice(&BANK_MAGIC)
             .map_err(|_| AudioError::BankFull)?;
         out.push(BANK_VERSION).map_err(|_| AudioError::BankFull)?;
         let count = self.entries.len() as u16;
-        out.push((count & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-        out.push((count >> 8) as u8).map_err(|_| AudioError::BankFull)?;
+        out.push((count & 0xFF) as u8)
+            .map_err(|_| AudioError::BankFull)?;
+        out.push((count >> 8) as u8)
+            .map_err(|_| AudioError::BankFull)?;
         let rate = self.sample_rate_hz.min(u16::MAX as u32) as u16;
-        out.push((rate & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-        out.push((rate >> 8) as u8).map_err(|_| AudioError::BankFull)?;
+        out.push((rate & 0xFF) as u8)
+            .map_err(|_| AudioError::BankFull)?;
+        out.push((rate >> 8) as u8)
+            .map_err(|_| AudioError::BankFull)?;
         out.push(0).map_err(|_| AudioError::BankFull)?; // reserved
         for e in &self.entries {
-            out.push((e.id & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push((e.id >> 8) as u8).map_err(|_| AudioError::BankFull)?;
+            out.push((e.id & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push((e.id >> 8) as u8)
+                .map_err(|_| AudioError::BankFull)?;
             out.push(e.kind as u8).map_err(|_| AudioError::BankFull)?;
             out.push(e.flags).map_err(|_| AudioError::BankFull)?;
-            out.push(e.default_gain_q8).map_err(|_| AudioError::BankFull)?;
+            out.push(e.default_gain_q8)
+                .map_err(|_| AudioError::BankFull)?;
             out.push(0).map_err(|_| AudioError::BankFull)?;
-            out.push((e.param0 & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push((e.param0 >> 8) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push((e.param1 & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push((e.param1 >> 8) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push((e.offset & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
+            out.push((e.param0 & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push((e.param0 >> 8) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push((e.param1 & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push((e.param1 >> 8) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push((e.offset & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
             out.push(((e.offset >> 8) & 0xFF) as u8)
                 .map_err(|_| AudioError::BankFull)?;
             out.push(((e.offset >> 16) & 0xFF) as u8)
                 .map_err(|_| AudioError::BankFull)?;
             out.push(((e.offset >> 24) & 0xFF) as u8)
                 .map_err(|_| AudioError::BankFull)?;
-            out.push((e.len & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
-            out.push(((e.len >> 8) & 0xFF) as u8).map_err(|_| AudioError::BankFull)?;
+            out.push((e.len & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
+            out.push(((e.len >> 8) & 0xFF) as u8)
+                .map_err(|_| AudioError::BankFull)?;
         }
         out.extend_from_slice(&self.payload)
             .map_err(|_| AudioError::BankFull)?;

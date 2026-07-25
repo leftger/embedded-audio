@@ -86,12 +86,7 @@ impl<'a> VoiceSource<'a> {
         *self = Self::Wavetable(voice);
     }
 
-    pub fn start_fm(
-        &mut self,
-        carrier_hz: u32,
-        mod_ratio_cent: u16,
-        sample_rate_hz: u32,
-    ) {
+    pub fn start_fm(&mut self, carrier_hz: u32, mod_ratio_cent: u16, sample_rate_hz: u32) {
         let mut voice = FmVoice::new();
         voice.start(carrier_hz, mod_ratio_cent, 72, sample_rate_hz);
         *self = Self::Fm(voice);

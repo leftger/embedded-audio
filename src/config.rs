@@ -60,9 +60,5 @@ pub const fn crossfade_step_q8(duration_ms: u16, sample_rate_hz: u32) -> u8 {
         return 255;
     }
     let step = (255u32 + samples - 1) / samples;
-    if step > 255 {
-        255
-    } else {
-        step as u8
-    }
+    if step > 255 { 255 } else { step as u8 }
 }

@@ -54,21 +54,21 @@ pub mod preview;
 #[cfg(feature = "fm")]
 pub mod profile;
 
-pub use bank::{BankBuilder, EffectEntry, SoundBank, BANK_BUILD_CAP, BANK_MAGIC, BANK_VERSION};
+pub use bank::{BANK_BUILD_CAP, BANK_MAGIC, BANK_VERSION, BankBuilder, EffectEntry, SoundBank};
 pub use config::{
-    crossfade_step_q8, AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD,
-    DEFAULT_SAMPLE_RATE_HZ,
+    AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD, DEFAULT_SAMPLE_RATE_HZ,
+    crossfade_step_q8,
 };
 pub use decode::{AdpcmDecoder, AdpcmStream, Pcm8Stream};
 pub use engine::AudioEngine;
 pub use envelope::{Adsr, AdsrSpec};
 pub use error::AudioError;
-pub use hal::{tick_into, PwmDutySink};
+pub use hal::{PwmDutySink, tick_into};
 pub use output::{DutyMode, PwmMapper, SigmaDelta};
 pub use source::VoiceSource;
 pub use stream::SigmaDeltaBitStream;
 pub use synth::{FmVoice, ToneParams, ToneVoice, Waveform, WavetableVoice};
-pub use tier::{flags, EffectKind};
+pub use tier::{EffectKind, flags};
 
 #[cfg(feature = "std")]
 pub use preview::{render_effect_pcm, render_effect_wav};

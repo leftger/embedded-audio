@@ -2,6 +2,7 @@
 name = "embedded-audio"
 version = "0.2.0"
 edition = "2024"
+authors = ["Gerzain Mata <leftger@gmail.com>"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/leftger/embedded-audio"
 description = "no_std duty-modulated PWM audio: effect banks, tiered DSP, and mixing for Cortex-M"

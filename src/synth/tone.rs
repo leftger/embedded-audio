@@ -1,5 +1,5 @@
 use crate::envelope::AdsrSpec;
-use crate::fixed::{hz_to_phase_inc, sin_table, Phase};
+use crate::fixed::{Phase, hz_to_phase_inc, sin_table};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Waveform {

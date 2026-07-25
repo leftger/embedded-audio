@@ -12,7 +12,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use embedded_audio::encode::adpcm;
-use embedded_audio::{BankBuilder, EffectKind, flags, AudioError, BANK_BUILD_CAP};
+use embedded_audio::{AudioError, BANK_BUILD_CAP, BankBuilder, EffectKind, flags};
 
 #[derive(Debug)]
 struct AddSpec {
@@ -228,7 +228,10 @@ fn apply_add(builder: &mut BankBuilder, spec: &AddSpec) -> Result<(), String> {
                 .ok_or("wavetable needs hz:file")?
                 .parse()
                 .map_err(|_| "bad hz")?;
-            let path = spec.args.get(1).ok_or("wavetable needs 256-byte table file")?;
+            let path = spec
+                .args
+                .get(1)
+                .ok_or("wavetable needs 256-byte table file")?;
             let bytes = fs::read(path).map_err(|e| e.to_string())?;
             if bytes.len() < 256 {
                 return Err(format!(

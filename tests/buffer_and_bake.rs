@@ -1,6 +1,6 @@
 use embedded_audio::{
-    hal::DutyBuffer, AdsrSpec, AudioConfig, AudioEngine, BankBuilder, EffectKind, SoundBank,
-    Waveform, flags, BANK_BUILD_CAP,
+    AdsrSpec, AudioConfig, AudioEngine, BANK_BUILD_CAP, BankBuilder, EffectKind, SoundBank,
+    Waveform, flags, hal::DutyBuffer,
 };
 
 #[test]

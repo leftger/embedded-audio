@@ -71,7 +71,9 @@ fn run() -> Result<(), String> {
 
     let mut engine = AudioEngine::new(AudioConfig::default_duty().master_gain_q8(255));
     engine.set_bank(bank);
-    engine.play(effect_id, AdsrSpec::click()).map_err(|e| e.as_str().to_string())?;
+    engine
+        .play(effect_id, AdsrSpec::click())
+        .map_err(|e| e.as_str().to_string())?;
 
     let mut pcm = Vec::with_capacity(max_samples.min(256 * 1024));
     while engine.is_playing() && pcm.len() < max_samples {

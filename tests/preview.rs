@@ -1,7 +1,8 @@
 use embedded_audio::{
-    preview::{pcm_i8_to_u8, render_effect_pcm, write_mono_u8},
+    AdsrSpec, BANK_BUILD_CAP, BankBuilder, EffectKind, SoundBank,
     encode::wav::build_wav_u8,
-    AdsrSpec, BankBuilder, EffectKind, SoundBank, flags, BANK_BUILD_CAP,
+    flags,
+    preview::{pcm_i8_to_u8, render_effect_pcm, write_mono_u8},
 };
 
 #[test]

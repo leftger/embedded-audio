@@ -21,11 +21,7 @@ pub const fn phase_index(phase: Phase) -> u8 {
 #[inline]
 pub fn sin_table(index: u8) -> i8 {
     let x = index as i32;
-    let y = if x < 128 {
-        x * 2
-    } else {
-        (255 - x) * 2
-    };
+    let y = if x < 128 { x * 2 } else { (255 - x) * 2 };
     let quad = (y * (255 - y)) >> 8;
     let s = if x < 128 { quad } else { -quad };
     s.clamp(-127, 127) as i8

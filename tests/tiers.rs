@@ -1,6 +1,6 @@
 use embedded_audio::{
-    AdsrSpec, AudioConfig, AudioEngine, BankBuilder, DutyMode, EffectKind, PwmMapper, SoundBank,
-    ToneVoice, Waveform, flags, BANK_BUILD_CAP,
+    AdsrSpec, AudioConfig, AudioEngine, BANK_BUILD_CAP, BankBuilder, DutyMode, EffectKind,
+    PwmMapper, SoundBank, ToneVoice, Waveform, flags,
 };
 
 #[test]
@@ -125,9 +125,7 @@ fn play_respects_priority() {
     let mut engine = AudioEngine::default();
     engine.set_bank(bank);
     engine.play_with_priority(1, AdsrSpec::pad(), 200).unwrap();
-    assert!(engine
-        .play_with_priority(1, AdsrSpec::pad(), 100)
-        .is_err());
+    assert!(engine.play_with_priority(1, AdsrSpec::pad(), 100).is_err());
     engine.stop_all();
 }
 

@@ -5,10 +5,7 @@ pub trait PwmDutySink {
 
 /// Run one engine tick and push duty to the sink.
 #[inline]
-pub fn tick_into<S: PwmDutySink>(
-    engine: &mut crate::AudioEngine<'_>,
-    sink: &mut S,
-) -> u16 {
+pub fn tick_into<S: PwmDutySink>(engine: &mut crate::AudioEngine<'_>, sink: &mut S) -> u16 {
     let duty = engine.tick();
     sink.set_duty(duty);
     duty

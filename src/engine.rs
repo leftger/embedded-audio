@@ -1,9 +1,9 @@
 use crate::bank::{EffectEntry, SoundBank};
-use crate::config::{crossfade_step_q8, AudioConfig};
+use crate::config::{AudioConfig, crossfade_step_q8};
 use crate::envelope::AdsrSpec;
 use crate::error::AudioError;
 use crate::fixed::{apply_gain_q8, mix_crossfade};
-use crate::output::{limit_bus, DutyMode, PwmMapper};
+use crate::output::{DutyMode, PwmMapper, limit_bus};
 use crate::voice::Voice;
 
 #[cfg(feature = "fm")]
@@ -105,8 +105,7 @@ impl<'a> AudioEngine<'a> {
         self.start_on_voice(1, &bank, entry, adsr, 128)?;
         self.crossfade_active = true;
         self.crossfade_t_q8 = 0;
-        self.crossfade_step_q8 =
-            crossfade_step_q8(duration_ms, self.config.sample_rate_hz);
+        self.crossfade_step_q8 = crossfade_step_q8(duration_ms, self.config.sample_rate_hz);
         Ok(())
     }
 
@@ -114,9 +113,7 @@ impl<'a> AudioEngine<'a> {
         if !self.crossfade_active {
             return;
         }
-        let t = self
-            .crossfade_t_q8
-            .saturating_add(self.crossfade_step_q8);
+        let t = self.crossfade_t_q8.saturating_add(self.crossfade_step_q8);
         self.crossfade_t_q8 = t.min(255);
         if t >= 255 {
             self.voices[0].stop_immediate();
@@ -212,12 +209,7 @@ impl<'a> AudioEngine<'a> {
     }
 
     /// Tier A tone without a bank.
-    pub fn play_tone(
-        &mut self,
-        freq_hz: u32,
-        duration_ms: u16,
-        waveform: crate::synth::Waveform,
-    ) {
+    pub fn play_tone(&mut self, freq_hz: u32, duration_ms: u16, waveform: crate::synth::Waveform) {
         let rate = self.config.sample_rate_hz;
         self.voices[0] = Voice::silent(rate);
         self.voices[0]

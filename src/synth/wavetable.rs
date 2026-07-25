@@ -1,4 +1,4 @@
-use crate::fixed::{hz_to_phase_inc, lerp_i8, phase_index, Phase};
+use crate::fixed::{Phase, hz_to_phase_inc, lerp_i8, phase_index};
 
 /// Tier A wavetable oscillator (256-byte table, linear interpolation).
 #[derive(Debug, Clone, Copy)]

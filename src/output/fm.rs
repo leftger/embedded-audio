@@ -43,11 +43,7 @@ impl FmMapper {
     /// Use when the voice is a pure tone oscillator (Tier A `Tone`).
     pub const fn from_carrier(hz: u32, active: bool) -> FmTick {
         FmTick {
-            frequency_hz: if active {
-                clamp_frequency(hz)
-            } else {
-                hz
-            },
+            frequency_hz: if active { clamp_frequency(hz) } else { hz },
             active,
         }
     }

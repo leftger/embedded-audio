@@ -1,6 +1,4 @@
-use embedded_audio::{
-    markham, AdsrSpec, AudioEngine, FmMapper, Waveform,
-};
+use embedded_audio::{AudioEngine, FmMapper, Waveform, markham};
 
 #[test]
 fn markham_profile_clamps_frequency() {
