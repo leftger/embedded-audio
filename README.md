@@ -97,12 +97,48 @@ engine.fill_duty_buffer(&mut dma);
 | `DEFAULT_PWM_PERIOD` | 1000 (set from your timer clock) |
 | Output shaping | `DutyMode::SigmaDelta` |
 
+## Real-time DSP & Analysis (`dsp` feature)
+
+Enable the optional `dsp` feature to integrate zero-allocation digital signal processing algorithms powered by `embedded-dsp` (using `libm` for `#![no_std]` targets):
+
+```toml
+[dependencies]
+embedded-audio = { version = "0.2.0", features = ["dsp"] }
+```
+
+```rust
+use embedded_audio::prelude::*;
+use embedded_audio::synth::Waveform;
+
+let mut engine = AudioEngine::from_sample_rate(16000, 255, DutyMode::Linear);
+engine.play_tone(440, 100, Waveform::Sine);
+
+// 1. Equalize or filter engine audio with a Biquad filter (Lowpass, Highpass, Bandpass, Notch)
+let mut filter = BiquadAudioFilter::lowpass(1000.0, 16000.0, 0.707);
+
+let mut frame = [0.0f32; 256];
+engine.fill_pcm_f32_buffer(&mut frame);
+filter.process_buffer(&mut frame);
+
+// 2. Measure audio signal statistics (RMS, Peak, Power, Mean, Variance)
+let stats = AudioMeter::measure(&frame);
+// stats.rms, stats.peak, stats.power, etc.
+
+// 3. FFT Spectrum Analysis & Pitch / Dominant Frequency Detection
+let (peak_freq_hz, peak_mag) = AudioSpectrumAnalyzer::find_peak_frequency(
+    &frame,
+    16000.0,
+    WindowType::Hanning,
+);
+```
+
 ## Features
 
 | Feature | Purpose |
 |---------|---------|
 | `std` | Host ADPCM encoder + `eaf-bake` binary |
 | `fm` | Optional FM-buzzer backend (`tick_fm`, Markham profile) for bring-up only |
+| `dsp` | Optional real-time DSP (`BiquadAudioFilter`, `AudioSpectrumAnalyzer`, `AudioMeter`, `AudioLmsFilter`) via `embedded-dsp` |
 
 ## RAM budget (typical)
 
