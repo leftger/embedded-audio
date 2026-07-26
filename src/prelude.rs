@@ -8,3 +8,8 @@ pub use crate::error::AudioError;
 pub use crate::hal::{DutyBuffer, PwmDutySink, fill_buffer_into, tick_into};
 pub use crate::output::{DutyMode, PwmMapper, SigmaDelta};
 pub use crate::tier::{EffectKind, flags};
+
+#[cfg(feature = "dsp")]
+pub use crate::dsp::{
+    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter, WindowType,
+};

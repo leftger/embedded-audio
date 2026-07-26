@@ -54,6 +54,9 @@ pub mod preview;
 #[cfg(feature = "fm")]
 pub mod profile;
 
+#[cfg(feature = "dsp")]
+pub mod dsp;
+
 pub use bank::{BANK_BUILD_CAP, BANK_MAGIC, BANK_VERSION, BankBuilder, EffectEntry, SoundBank};
 pub use config::{
     AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD, DEFAULT_SAMPLE_RATE_HZ,
@@ -78,3 +81,8 @@ pub use output::{FmMapper, FmTick};
 
 #[cfg(feature = "fm")]
 pub use profile::markham;
+
+#[cfg(feature = "dsp")]
+pub use dsp::{
+    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter, WindowType,
+};

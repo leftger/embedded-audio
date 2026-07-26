@@ -14,12 +14,15 @@ readme = "README.md"
 default = []
 std = []
 fm = []
+dsp = ["dep:embedded-dsp"]
 
 [dependencies]
 heapless = "0.9"
+embedded-dsp = { path = "../embedded-dsp", version = "0.1.0", default-features = false, features = ["libm"], optional = true }
 
 [dev-dependencies]
 heapless = "0.9"
+embedded-dsp = { path = "../embedded-dsp", version = "0.1.0", default-features = false, features = ["libm"] }
 
 [lib]
 name = "embedded_audio"

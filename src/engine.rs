@@ -114,8 +114,8 @@ impl<'a> AudioEngine<'a> {
             return;
         }
         let t = self.crossfade_t_q8.saturating_add(self.crossfade_step_q8);
-        self.crossfade_t_q8 = t.min(255);
-        if t >= 255 {
+        self.crossfade_t_q8 = t;
+        if t == 255 {
             self.voices[0].stop_immediate();
             self.voices[0].source = self.voices[1].source;
             self.voices[0].set_gain_q8(self.voices[1].gain_q8());
@@ -182,6 +182,21 @@ impl<'a> AudioEngine<'a> {
     /// Mixed PCM sample after envelopes (before PWM mapping). Useful for WAV preview.
     pub fn tick_pcm(&mut self) -> i8 {
         self.tick_mixed_pcm()
+    }
+
+    #[cfg(feature = "dsp")]
+    /// Mixed PCM sample tick normalized to floating-point range `[-1.0, 1.0]`.
+    pub fn tick_pcm_f32(&mut self) -> f32 {
+        self.tick_mixed_pcm() as f32 / 128.0
+    }
+
+    #[cfg(feature = "dsp")]
+    /// Fill a buffer with consecutive normalized floating-point PCM samples.
+    pub fn fill_pcm_f32_buffer(&mut self, out: &mut [f32]) -> usize {
+        for sample in out.iter_mut() {
+            *sample = self.tick_pcm_f32();
+        }
+        out.len()
     }
 
     /// One audio sample tick → PWM duty compare value.
