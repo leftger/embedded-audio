@@ -84,5 +84,6 @@ pub use profile::markham;
 
 #[cfg(feature = "dsp")]
 pub use dsp::{
-    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter, WindowType,
+    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter,
+    EnvelopeFollower, GoertzelDetector, WindowType,
 };

@@ -18,11 +18,11 @@ dsp = ["dep:embedded-dsp"]
 
 [dependencies]
 heapless = "0.9"
-embedded-dsp = { version = "0.1.0", git = "https://github.com/leftger/embedded-dsp", default-features = false, features = ["libm"], optional = true }
+embedded-dsp = { version = "0.1.0", path = "../embedded-dsp", default-features = false, features = ["libm"], optional = true }
 
 [dev-dependencies]
 heapless = "0.9"
-embedded-dsp = { version = "0.1.0", git = "https://github.com/leftger/embedded-dsp", default-features = false, features = ["libm"] }
+embedded-dsp = { version = "0.1.0", path = "../embedded-dsp", default-features = false, features = ["libm"] }
 
 [lib]
 name = "embedded_audio"

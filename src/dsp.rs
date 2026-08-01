@@ -306,3 +306,81 @@ impl<'a> AudioLmsFilter<'a> {
         lms_f32(&mut self.inst, src, ref_signal, out, err);
     }
 }
+
+/// Single-frequency Goertzel algorithm detector for tone and DTMF decoding.
+pub struct GoertzelDetector {
+    coeff: f32,
+    s_prev: f32,
+    s_prev2: f32,
+}
+
+impl GoertzelDetector {
+    /// Initialise a Goertzel detector for a target frequency and sample rate.
+    pub fn new(target_freq: f32, sample_rate: f32) -> Self {
+        let omega = 2.0 * core::f32::consts::PI * target_freq / sample_rate;
+        let coeff = 2.0 * omega.cos();
+        Self {
+            coeff,
+            s_prev: 0.0,
+            s_prev2: 0.0,
+        }
+    }
+
+    /// Reset state for a new window of samples.
+    pub fn reset(&mut self) {
+        self.s_prev = 0.0;
+        self.s_prev2 = 0.0;
+    }
+
+    /// Process a single audio sample.
+    pub fn update(&mut self, sample: f32) {
+        let s = sample + self.coeff * self.s_prev - self.s_prev2;
+        self.s_prev2 = self.s_prev;
+        self.s_prev = s;
+    }
+
+    /// Compute the current magnitude at the target frequency.
+    pub fn magnitude(&self) -> f32 {
+        (self.s_prev * self.s_prev + self.s_prev2 * self.s_prev2
+            - self.coeff * self.s_prev * self.s_prev2)
+            .sqrt()
+    }
+}
+
+/// Peak/RMS envelope follower with configurable attack and release smoothing.
+pub struct EnvelopeFollower {
+    attack_coeff: f32,
+    release_coeff: f32,
+    envelope: f32,
+}
+
+impl EnvelopeFollower {
+    /// Create envelope follower given attack and release time constants in seconds and sample rate.
+    pub fn new(attack_time_sec: f32, release_time_sec: f32, sample_rate: f32) -> Self {
+        let attack_coeff = (-1.0 / (attack_time_sec * sample_rate)).exp();
+        let release_coeff = (-1.0 / (release_time_sec * sample_rate)).exp();
+        Self {
+            attack_coeff,
+            release_coeff,
+            envelope: 0.0,
+        }
+    }
+
+    /// Update envelope follower with incoming sample value.
+    pub fn update(&mut self, sample: f32) -> f32 {
+        let input_mag = sample.abs();
+        if input_mag > self.envelope {
+            self.envelope =
+                self.attack_coeff * self.envelope + (1.0 - self.attack_coeff) * input_mag;
+        } else {
+            self.envelope =
+                self.release_coeff * self.envelope + (1.0 - self.release_coeff) * input_mag;
+        }
+        self.envelope
+    }
+
+    /// Reset internal envelope state.
+    pub fn reset(&mut self) {
+        self.envelope = 0.0;
+    }
+}

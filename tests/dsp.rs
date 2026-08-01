@@ -1,7 +1,8 @@
 #![cfg(feature = "dsp")]
 
 use embedded_audio::dsp::{
-    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, BiquadAudioFilter, WindowType,
+    AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, BiquadAudioFilter, EnvelopeFollower,
+    GoertzelDetector, WindowType,
 };
 use embedded_audio::prelude::*;
 use embedded_audio::synth::Waveform;
@@ -224,4 +225,24 @@ fn test_end_to_end_dsp_audio_pipeline() {
 
     assert!(peak_mag > 0.0);
     assert!((peak_freq - 2000.0).abs() <= 62.5);
+}
+
+#[test]
+fn test_goertzel_detector() {
+    let mut detector = GoertzelDetector::new(1000.0, 8000.0);
+    for i in 0..80 {
+        let t = i as f32 / 8000.0;
+        let s = (2.0 * core::f32::consts::PI * 1000.0 * t).sin();
+        detector.update(s);
+    }
+    assert!(detector.magnitude() > 1.0);
+}
+
+#[test]
+fn test_envelope_follower() {
+    let mut env = EnvelopeFollower::new(0.01, 0.1, 44100.0);
+    let val1 = env.update(1.0);
+    let val2 = env.update(0.0);
+    assert!(val1 > 0.0);
+    assert!(val2 < val1);
 }
