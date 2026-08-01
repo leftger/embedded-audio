@@ -384,3 +384,66 @@ impl EnvelopeFollower {
         self.envelope = 0.0;
     }
 }
+
+/// Fixed-point Q15 Biquad filter operating without hardware floating-point operations.
+#[derive(Debug, Clone)]
+pub struct BiquadAudioFilterQ15 {
+    // Coefficients scaled in Q14 (1.14 fixed point format)
+    b0: i16,
+    b1: i16,
+    b2: i16,
+    a1: i16,
+    a2: i16,
+    x1: i16,
+    x2: i16,
+    y1: i16,
+    y2: i16,
+}
+
+impl BiquadAudioFilterQ15 {
+    pub const fn new(b0: i16, b1: i16, b2: i16, a1: i16, a2: i16) -> Self {
+        Self {
+            b0,
+            b1,
+            b2,
+            a1,
+            a2,
+            x1: 0,
+            x2: 0,
+            y1: 0,
+            y2: 0,
+        }
+    }
+
+    pub fn reset(&mut self) {
+        self.x1 = 0;
+        self.x2 = 0;
+        self.y1 = 0;
+        self.y2 = 0;
+    }
+
+    /// Process a single 16-bit signed PCM sample (`i16`).
+    pub fn process_sample_i16(&mut self, x: i16) -> i16 {
+        let acc = (self.b0 as i32 * x as i32)
+            + (self.b1 as i32 * self.x1 as i32)
+            + (self.b2 as i32 * self.x2 as i32)
+            - (self.a1 as i32 * self.y1 as i32)
+            - (self.a2 as i32 * self.y2 as i32);
+
+        let y = (acc >> 14).clamp(-32768, 32767) as i16;
+
+        self.x2 = self.x1;
+        self.x1 = x;
+        self.y2 = self.y1;
+        self.y1 = y;
+
+        y
+    }
+
+    /// Process a single 8-bit signed PCM sample (`i8`).
+    pub fn process_sample_i8(&mut self, x: i8) -> i8 {
+        let x16 = (x as i16) << 8;
+        let y16 = self.process_sample_i16(x16);
+        (y16 >> 8) as i8
+    }
+}

@@ -124,8 +124,9 @@ fn play_respects_priority() {
     let bank = SoundBank::parse(&built).unwrap();
     let mut engine = AudioEngine::default();
     engine.set_bank(bank);
-    engine.play_with_priority(1, AdsrSpec::pad(), 200).unwrap();
-    assert!(engine.play_with_priority(1, AdsrSpec::pad(), 100).is_err());
+    engine.play_with_priority(1, AdsrSpec::pad(), 200).unwrap(); // occupies voice 0
+    engine.play_with_priority(1, AdsrSpec::pad(), 200).unwrap(); // occupies voice 1
+    assert!(engine.play_with_priority(1, AdsrSpec::pad(), 100).is_err()); // all voices busy with higher priority
     engine.stop_all();
 }
 

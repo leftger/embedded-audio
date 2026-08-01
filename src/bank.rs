@@ -97,6 +97,22 @@ impl<'a> SoundBank<'a> {
     }
 
     pub fn find_by_id(&self, id: u16) -> Result<EffectEntry, AudioError> {
+        let mut low = 0i32;
+        let mut high = self.effect_count as i32 - 1;
+
+        while low <= high {
+            let mid = (low + high) / 2;
+            let entry = self.entry(mid as usize)?;
+            if entry.id == id {
+                return Ok(entry);
+            } else if entry.id < id {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        // Fallback linear scan in case bank entries were not sorted
         for i in 0..self.effect_count as usize {
             let e = self.entry(i)?;
             if e.id == id {
@@ -129,6 +145,7 @@ impl BankBuilder {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_effect(
         &mut self,
         id: u16,
@@ -166,11 +183,20 @@ impl BankBuilder {
         &self,
         out: &mut heapless::Vec<u8, { BANK_BUILD_CAP }>,
     ) -> Result<(), AudioError> {
+        let mut sorted_entries = self.entries.clone();
+        for i in 0..sorted_entries.len() {
+            for j in (i + 1)..sorted_entries.len() {
+                if sorted_entries[i].id > sorted_entries[j].id {
+                    sorted_entries.swap(i, j);
+                }
+            }
+        }
+
         out.clear();
         out.extend_from_slice(&BANK_MAGIC)
             .map_err(|_| AudioError::BankFull)?;
         out.push(BANK_VERSION).map_err(|_| AudioError::BankFull)?;
-        let count = self.entries.len() as u16;
+        let count = sorted_entries.len() as u16;
         out.push((count & 0xFF) as u8)
             .map_err(|_| AudioError::BankFull)?;
         out.push((count >> 8) as u8)
@@ -181,7 +207,7 @@ impl BankBuilder {
         out.push((rate >> 8) as u8)
             .map_err(|_| AudioError::BankFull)?;
         out.push(0).map_err(|_| AudioError::BankFull)?; // reserved
-        for e in &self.entries {
+        for e in &sorted_entries {
             out.push((e.id & 0xFF) as u8)
                 .map_err(|_| AudioError::BankFull)?;
             out.push((e.id >> 8) as u8)

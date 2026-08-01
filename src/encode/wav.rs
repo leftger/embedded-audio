@@ -13,7 +13,8 @@ pub fn write_mono_u8(path: &str, sample_rate_hz: u32, samples: &[u8]) -> Result<
 }
 
 pub fn build_wav_u8(sample_rate_hz: u32, samples: &[u8]) -> Vec<u8> {
-    let byte_rate = sample_rate_hz * 1;
+    let byte_rate = sample_rate_hz;
+
     let block_align = 1u16;
     let data_len = samples.len() as u32;
     let riff_len = 36 + data_len;

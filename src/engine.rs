@@ -9,49 +9,101 @@ use crate::voice::Voice;
 #[cfg(feature = "fm")]
 use crate::output::{FmMapper, FmTick};
 
-const VOICES: usize = 2;
+/// Policy for dynamic voice allocation when triggering new effects.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum VoiceStealingPolicy {
+    /// Steal the lowest-priority voice if all voices are active and new priority is higher.
+    #[default]
+    LowestPriorityOldest,
+    /// Only allocate if a voice channel is completely free.
+    FreeChannelOnly,
+}
 
-/// Two-voice mixer with bank playback and duty-modulated PWM output.
-pub struct AudioEngine<'a> {
+/// N-voice mixer with bank playback, dynamic voice allocation, and duty-modulated PWM output.
+pub struct AudioEngine<'a, const N: usize = 2> {
     bank: Option<SoundBank<'a>>,
     config: AudioConfig,
-    voices: [Voice<'a>; VOICES],
+    voices: [Voice<'a>; N],
     mapper: PwmMapper,
     crossfade_t_q8: u8,
     crossfade_step_q8: u8,
     crossfade_active: bool,
+    stealing_policy: VoiceStealingPolicy,
     #[cfg(feature = "fm")]
     fm_mapper: FmMapper,
 }
 
-impl<'a> AudioEngine<'a> {
+impl<'a> AudioEngine<'a, 2> {
+    /// Create a standard 2-voice audio engine.
     pub fn new(config: AudioConfig) -> Self {
-        let rate = config.sample_rate_hz;
-        Self {
-            bank: None,
-            config,
-            voices: [Voice::silent(rate); VOICES],
-            mapper: PwmMapper::new(config.duty_mode),
-            crossfade_t_q8: 0,
-            crossfade_step_q8: 0,
-            crossfade_active: false,
-            #[cfg(feature = "fm")]
-            fm_mapper: FmMapper::markham(),
-        }
+        Self::with_voice_count(config)
     }
 
     pub fn from_sample_rate(sample_rate_hz: u32, pwm_period: u16, duty_mode: DutyMode) -> Self {
         Self::new(AudioConfig::new(sample_rate_hz, pwm_period, duty_mode))
     }
 
+    #[cfg(feature = "fm")]
+    pub fn new_markham() -> Self {
+        use crate::profile::markham;
+        Self::new(AudioConfig::new(
+            markham::CONTROL_TICK_HZ,
+            0,
+            DutyMode::Linear,
+        ))
+    }
+}
+
+impl<'a, const N: usize> AudioEngine<'a, N> {
+    /// Create an audio engine with generic voice count N.
+    pub fn with_voice_count(config: AudioConfig) -> Self {
+        let rate = config.sample_rate_hz;
+        Self {
+            bank: None,
+            config,
+            voices: [Voice::silent(rate); N],
+            mapper: PwmMapper::new(config.duty_mode),
+            crossfade_t_q8: 0,
+            crossfade_step_q8: 0,
+            crossfade_active: false,
+            stealing_policy: VoiceStealingPolicy::default(),
+            #[cfg(feature = "fm")]
+            fm_mapper: FmMapper::markham(),
+        }
+    }
+
     pub fn config(&self) -> AudioConfig {
         self.config
+    }
+
+    pub fn set_stealing_policy(&mut self, policy: VoiceStealingPolicy) {
+        self.stealing_policy = policy;
+    }
+
+    pub fn stealing_policy(&self) -> VoiceStealingPolicy {
+        self.stealing_policy
+    }
+
+    pub fn voice_count(&self) -> usize {
+        N
+    }
+
+    pub fn active_voice_count(&self) -> usize {
+        self.voices.iter().filter(|v| v.is_audible()).count()
+    }
+
+    pub fn voice(&self, idx: usize) -> Option<&Voice<'a>> {
+        self.voices.get(idx)
+    }
+
+    pub fn voice_mut(&mut self, idx: usize) -> Option<&mut Voice<'a>> {
+        self.voices.get_mut(idx)
     }
 
     pub fn set_bank(&mut self, bank: SoundBank<'a>) {
         let rate = bank.sample_rate_hz;
         self.config.sample_rate_hz = rate;
-        self.voices = [Voice::silent(rate); VOICES];
+        self.voices = [Voice::silent(rate); N];
         self.bank = Some(bank);
     }
 
@@ -72,24 +124,49 @@ impl<'a> AudioEngine<'a> {
         self.voices.iter().any(|v| v.is_audible())
     }
 
-    /// Play effect on voice 0 (replaces current voice 0).
-    pub fn play(&mut self, effect_id: u16, adsr: AdsrSpec) -> Result<(), AudioError> {
+    /// Dynamically allocate a voice channel based on priority and stealing policy.
+    pub fn allocate_voice(&mut self, priority: u8) -> Option<usize> {
+        if N == 0 {
+            return None;
+        }
+        // 1. Look for an inaudible / idle voice
+        for (i, v) in self.voices.iter().enumerate() {
+            if !v.is_audible() {
+                return Some(i);
+            }
+        }
+        // 2. Check stealing policy
+        if self.stealing_policy == VoiceStealingPolicy::LowestPriorityOldest {
+            let mut lowest_idx = None;
+            let mut lowest_prio = priority;
+            for (i, v) in self.voices.iter().enumerate() {
+                if v.priority < lowest_prio {
+                    lowest_prio = v.priority;
+                    lowest_idx = Some(i);
+                }
+            }
+            return lowest_idx;
+        }
+        None
+    }
+
+    /// Play effect on an automatically allocated voice channel.
+    pub fn play(&mut self, effect_id: u16, adsr: AdsrSpec) -> Result<usize, AudioError> {
         self.play_with_priority(effect_id, adsr, 128)
     }
 
-    /// Play only if `priority` exceeds the active voice 0 priority.
+    /// Play with custom priority on an allocated voice channel.
     pub fn play_with_priority(
         &mut self,
         effect_id: u16,
         adsr: AdsrSpec,
         priority: u8,
-    ) -> Result<(), AudioError> {
-        if self.voices[0].is_audible() && self.voices[0].priority > priority {
-            return Err(AudioError::VoiceBusy);
-        }
+    ) -> Result<usize, AudioError> {
+        let idx = self.allocate_voice(priority).ok_or(AudioError::VoiceBusy)?;
         let bank = self.bank.ok_or(AudioError::NoBank)?;
         let entry = bank.find_by_id(effect_id)?;
-        self.start_on_voice(0, &bank, entry, adsr, priority)
+        self.start_on_voice(idx, &bank, entry, adsr, priority)?;
+        Ok(idx)
     }
 
     /// Crossfade voice 0 → `effect_id` on voice 1 over `duration_ms`.
@@ -99,6 +176,9 @@ impl<'a> AudioEngine<'a> {
         duration_ms: u16,
         adsr: AdsrSpec,
     ) -> Result<(), AudioError> {
+        if N < 2 {
+            return Err(AudioError::VoiceBusy);
+        }
         let bank = self.bank.ok_or(AudioError::NoBank)?;
         let entry = bank.find_by_id(effect_id)?;
         self.voices[0].release();
@@ -110,7 +190,7 @@ impl<'a> AudioEngine<'a> {
     }
 
     fn advance_crossfade(&mut self) {
-        if !self.crossfade_active {
+        if !self.crossfade_active || N < 2 {
             return;
         }
         let t = self.crossfade_t_q8.saturating_add(self.crossfade_step_q8);
@@ -126,7 +206,7 @@ impl<'a> AudioEngine<'a> {
         }
     }
 
-    fn start_on_voice(
+    pub fn start_on_voice(
         &mut self,
         idx: usize,
         bank: &SoundBank<'a>,
@@ -134,6 +214,9 @@ impl<'a> AudioEngine<'a> {
         adsr: AdsrSpec,
         priority: u8,
     ) -> Result<(), AudioError> {
+        if idx >= N {
+            return Err(AudioError::VoiceBusy);
+        }
         let payload = bank.payload(&entry)?;
         let rate = bank.sample_rate_hz;
         let mut voice = Voice::silent(rate);
@@ -160,20 +243,35 @@ impl<'a> AudioEngine<'a> {
             v.tick_envelope();
         }
 
-        let a = self.voices[0].next_sample();
-        let b = self.voices[1].next_sample();
+        if N == 0 {
+            return 0;
+        }
 
-        let mixed = match (a, b) {
-            (None, None) => 0,
-            (Some(s), None) => s as i32,
-            (None, Some(s)) => s as i32,
-            (Some(sa), Some(sb)) => {
-                if self.crossfade_active {
-                    mix_crossfade(sa, sb, self.crossfade_t_q8) as i32
-                } else {
-                    (sa as i32 + sb as i32) / 2
-                }
+        if self.crossfade_active && N >= 2 {
+            let sa = self.voices[0].next_sample();
+            let sb = self.voices[1].next_sample();
+            let mixed = match (sa, sb) {
+                (None, None) => 0,
+                (Some(s), None) => s as i32,
+                (None, Some(s)) => s as i32,
+                (Some(sa), Some(sb)) => mix_crossfade(sa, sb, self.crossfade_t_q8) as i32,
+            };
+            return apply_gain_q8(limit_bus(mixed), self.config.master_gain_q8);
+        }
+
+        let mut sum: i32 = 0;
+        let mut active_count: i32 = 0;
+        for v in &mut self.voices {
+            if let Some(s) = v.next_sample() {
+                sum += s as i32;
+                active_count += 1;
             }
+        }
+
+        let mixed = if active_count > 1 {
+            sum / active_count
+        } else {
+            sum
         };
 
         apply_gain_q8(limit_bus(mixed), self.config.master_gain_q8)
@@ -226,11 +324,13 @@ impl<'a> AudioEngine<'a> {
     /// Tier A tone without a bank.
     pub fn play_tone(&mut self, freq_hz: u32, duration_ms: u16, waveform: crate::synth::Waveform) {
         let rate = self.config.sample_rate_hz;
-        self.voices[0] = Voice::silent(rate);
-        self.voices[0]
-            .source
-            .start_tone(freq_hz, duration_ms, waveform, rate);
-        self.voices[0].trigger_adsr(AdsrSpec::click());
+        if N > 0 {
+            self.voices[0] = Voice::silent(rate);
+            self.voices[0]
+                .source
+                .start_tone(freq_hz, duration_ms, waveform, rate);
+            self.voices[0].trigger_adsr(AdsrSpec::click());
+        }
     }
 
     #[cfg(feature = "fm")]
@@ -239,12 +339,13 @@ impl<'a> AudioEngine<'a> {
     }
 
     #[cfg(feature = "fm")]
+    #[allow(clippy::collapsible_if)]
     /// FM buzzer backend (optional; not used for duty-modulation products).
     pub fn tick_fm(&mut self) -> FmTick {
         let pcm = self.tick_mixed_pcm();
         let rate = self.config.sample_rate_hz;
 
-        if !self.crossfade_active {
+        if !self.crossfade_active && N > 0 {
             if let Some(hz) = self.voices[0].source.carrier_hz(rate) {
                 return FmMapper::from_carrier(hz, self.voices[0].source.is_active());
             }
@@ -252,19 +353,9 @@ impl<'a> AudioEngine<'a> {
 
         self.fm_mapper.map_pcm(pcm)
     }
-
-    #[cfg(feature = "fm")]
-    pub fn new_markham() -> Self {
-        use crate::profile::markham;
-        Self::new(AudioConfig::new(
-            markham::CONTROL_TICK_HZ,
-            0,
-            DutyMode::Linear,
-        ))
-    }
 }
 
-impl Default for AudioEngine<'static> {
+impl Default for AudioEngine<'static, 2> {
     fn default() -> Self {
         Self::new(AudioConfig::default())
     }

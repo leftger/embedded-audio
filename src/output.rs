@@ -14,6 +14,8 @@ pub enum DutyMode {
     Linear,
     /// First-order sigma-delta noise shaping before duty mapping.
     SigmaDelta,
+    /// Second-order MASH/error-diffusion noise shaping for higher frequency attenuation.
+    SigmaDelta2ndOrder,
 }
 
 /// First-order sigma-delta modulator (PCM → single-bit decision → duty).
@@ -43,6 +45,38 @@ impl SigmaDelta {
     }
 }
 
+/// Second-order sigma-delta modulator (MASH 1-1 / dual error integrator).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SigmaDelta2ndOrder {
+    e1: i32,
+    e2: i32,
+}
+
+impl SigmaDelta2ndOrder {
+    pub const fn new() -> Self {
+        Self { e1: 0, e2: 0 }
+    }
+
+    pub fn reset(&mut self) {
+        self.e1 = 0;
+        self.e2 = 0;
+    }
+
+    pub fn shape(&mut self, pcm: i8) -> i8 {
+        let input = (pcm as i32) << 8;
+        self.e1 += input;
+        let y1 = if self.e1 >= 0 { 32767 } else { -32768 };
+        self.e1 -= y1;
+
+        self.e2 += self.e1;
+        let y2 = if self.e2 >= 0 { 32767 } else { -32768 };
+        self.e2 -= y2;
+
+        let out = (y1 + y2) >> 9;
+        out.clamp(-127, 127) as i8
+    }
+}
+
 /// Map shaped PCM to PWM duty in `1..period-1`.
 #[inline]
 pub fn pcm_to_duty(pcm: i8, period: u16) -> u16 {
@@ -56,6 +90,7 @@ pub fn pcm_to_duty(pcm: i8, period: u16) -> u16 {
 pub struct PwmMapper {
     pub mode: DutyMode,
     pub sigma_delta: SigmaDelta,
+    pub sigma_delta_2nd: SigmaDelta2ndOrder,
 }
 
 impl PwmMapper {
@@ -63,6 +98,7 @@ impl PwmMapper {
         Self {
             mode,
             sigma_delta: SigmaDelta::new(),
+            sigma_delta_2nd: SigmaDelta2ndOrder::new(),
         }
     }
 
@@ -70,12 +106,14 @@ impl PwmMapper {
         let shaped = match self.mode {
             DutyMode::Linear => pcm,
             DutyMode::SigmaDelta => self.sigma_delta.shape(pcm),
+            DutyMode::SigmaDelta2ndOrder => self.sigma_delta_2nd.shape(pcm),
         };
         pcm_to_duty(shaped, period)
     }
 
     pub fn reset(&mut self) {
         self.sigma_delta.reset();
+        self.sigma_delta_2nd.reset();
     }
 }
 

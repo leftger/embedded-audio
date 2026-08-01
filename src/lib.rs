@@ -63,11 +63,12 @@ pub use config::{
     crossfade_step_q8,
 };
 pub use decode::{AdpcmDecoder, AdpcmStream, Pcm8Stream};
-pub use engine::AudioEngine;
+pub use engine::{AudioEngine, VoiceStealingPolicy};
 pub use envelope::{Adsr, AdsrSpec};
 pub use error::AudioError;
-pub use hal::{PwmDutySink, tick_into};
-pub use output::{DutyMode, PwmMapper, SigmaDelta};
+pub use fixed::{db_to_q8, q8_to_db};
+pub use hal::{DutyBuffer, PwmDutySink, fill_buffer_into, fill_dma_half_buffers, tick_into};
+pub use output::{DutyMode, PwmMapper, SigmaDelta, SigmaDelta2ndOrder};
 pub use source::VoiceSource;
 pub use stream::SigmaDeltaBitStream;
 pub use synth::{FmVoice, ToneParams, ToneVoice, Waveform, WavetableVoice};
@@ -85,5 +86,5 @@ pub use profile::markham;
 #[cfg(feature = "dsp")]
 pub use dsp::{
     AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter,
-    EnvelopeFollower, GoertzelDetector, WindowType,
+    BiquadAudioFilterQ15, EnvelopeFollower, GoertzelDetector, WindowType,
 };

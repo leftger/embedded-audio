@@ -33,4 +33,5 @@ impl EffectKind {
 pub mod flags {
     pub const LOOP: u8 = 1 << 0;
     pub const ONE_SHOT: u8 = 1 << 1;
+    pub const SIGNED: u8 = 1 << 2;
 }

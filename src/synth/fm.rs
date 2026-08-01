@@ -12,6 +12,12 @@ pub struct FmVoice {
     active: bool,
 }
 
+impl Default for FmVoice {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FmVoice {
     pub const fn new() -> Self {
         Self {

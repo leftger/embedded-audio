@@ -26,6 +26,12 @@ pub struct ToneVoice {
     active: bool,
 }
 
+impl Default for ToneVoice {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ToneVoice {
     pub const fn new() -> Self {
         Self {
