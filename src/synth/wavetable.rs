@@ -20,6 +20,22 @@ impl<'a> WavetableVoice<'a> {
         }
     }
 
+    pub const fn sine() -> Self {
+        Self::new(&SINE_TABLE)
+    }
+
+    pub const fn triangle() -> Self {
+        Self::new(&TRIANGLE_TABLE)
+    }
+
+    pub const fn saw() -> Self {
+        Self::new(&SAW_TABLE)
+    }
+
+    pub const fn square() -> Self {
+        Self::new(&SQUARE_TABLE)
+    }
+
     pub fn start(&mut self, freq_hz: u32, sample_rate_hz: u32) {
         self.phase = 0;
         self.phase_inc = hz_to_phase_inc(freq_hz, sample_rate_hz);
@@ -50,6 +66,14 @@ impl<'a> WavetableVoice<'a> {
 
 /// Built-in 256-sample sine-ish wavetable for FM and defaults.
 pub static SINE_TABLE: [u8; 256] = generate_sine_table();
+/// Built-in 256-sample triangle wavetable.
+pub static TRIANGLE_TABLE: [u8; 256] = generate_triangle_table();
+/// Built-in 256-sample sawtooth wavetable.
+pub static SAW_TABLE: [u8; 256] = generate_saw_table();
+/// Built-in 256-sample 50% square wavetable.
+pub static SQUARE_TABLE: [u8; 256] = generate_square_table();
+/// Built-in 256-sample 25% pulse wavetable.
+pub static PULSE_25_TABLE: [u8; 256] = generate_pulse_25_table();
 
 const fn generate_sine_table() -> [u8; 256] {
     let mut t = [0u8; 256];
@@ -70,4 +94,61 @@ const fn generate_sine_table() -> [u8; 256] {
         i += 1;
     }
     t
+}
+
+const fn generate_triangle_table() -> [u8; 256] {
+    let mut t = [0u8; 256];
+    let mut i = 0;
+    while i < 256 {
+        let val = if i < 64 {
+            128 + i * 2
+        } else if i < 192 {
+            255 - (i - 64) * 2
+        } else {
+            (i - 192) * 2
+        };
+        t[i] = val as u8;
+        i += 1;
+    }
+    t
+}
+
+const fn generate_saw_table() -> [u8; 256] {
+    let mut t = [0u8; 256];
+    let mut i = 0;
+    while i < 256 {
+        t[i] = i as u8;
+        i += 1;
+    }
+    t
+}
+
+const fn generate_square_table() -> [u8; 256] {
+    let mut t = [0u8; 256];
+    let mut i = 0;
+    while i < 256 {
+        t[i] = if i < 128 { 255 } else { 0 };
+        i += 1;
+    }
+    t
+}
+
+const fn generate_pulse_25_table() -> [u8; 256] {
+    let mut t = [0u8; 256];
+    let mut i = 0;
+    while i < 256 {
+        t[i] = if i < 64 { 255 } else { 0 };
+        i += 1;
+    }
+    t
+}
+
+/// Generate a 256-sample wavetable from a signed 8-bit sample mapping closure (-128..=127 -> 0..=255).
+pub fn generate_wavetable_fixed<F: Fn(u8) -> i8>(f: F) -> [u8; 256] {
+    let mut table = [0u8; 256];
+    for (i, slot) in table.iter_mut().enumerate() {
+        let sample = f(i as u8);
+        *slot = (sample as i16 + 128).clamp(0, 255) as u8;
+    }
+    table
 }

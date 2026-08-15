@@ -3,7 +3,11 @@ use crate::config::{AudioConfig, crossfade_step_q8};
 use crate::envelope::AdsrSpec;
 use crate::error::AudioError;
 use crate::fixed::{apply_gain_q8, mix_crossfade};
-use crate::output::{DutyMode, PwmMapper, limit_bus};
+use crate::output::{
+    DutyMode, PwmMapper, limit_bus, pcm_to_dac_u8, pcm_to_dac_u12, pcm_to_dac_u16, pcm_to_i16,
+    pcm_to_i32,
+};
+
 use crate::voice::Voice;
 
 #[cfg(feature = "fm")]
@@ -169,6 +173,38 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
         Ok(idx)
     }
 
+    /// Play custom wavetable on an automatically allocated voice channel.
+    pub fn play_wavetable(
+        &mut self,
+        table: &'a [u8],
+        freq_hz: u32,
+        adsr: AdsrSpec,
+    ) -> Result<usize, AudioError> {
+        self.play_wavetable_with_priority(table, freq_hz, adsr, 128)
+    }
+
+    /// Play custom wavetable with custom priority on an allocated voice channel.
+    pub fn play_wavetable_with_priority(
+        &mut self,
+        table: &'a [u8],
+        freq_hz: u32,
+        adsr: AdsrSpec,
+        priority: u8,
+    ) -> Result<usize, AudioError> {
+        if table.len() < 256 {
+            return Err(AudioError::InvalidPayload);
+        }
+        let idx = self.allocate_voice(priority).ok_or(AudioError::VoiceBusy)?;
+        let rate = self.config.sample_rate_hz;
+        let mut voice = Voice::silent(rate);
+        voice.set_gain_q8(255);
+        voice.priority = priority;
+        voice.source.start_wavetable(table, freq_hz, rate);
+        voice.trigger_adsr(adsr);
+        self.voices[idx] = voice;
+        Ok(idx)
+    }
+
     /// Crossfade voice 0 → `effect_id` on voice 1 over `duration_ms`.
     pub fn crossfade_to(
         &mut self,
@@ -311,6 +347,96 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
         for duty in out.iter_mut() {
             let pcm = self.tick_mixed_pcm();
             *duty = self.mapper.map(pcm, period);
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive signed 8-bit PCM samples (-128..=127).
+    pub fn fill_pcm_i8_buffer(&mut self, out: &mut [i8]) -> usize {
+        for slot in out.iter_mut() {
+            *slot = self.tick_mixed_pcm();
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive signed 16-bit PCM samples (-32768..=32767).
+    pub fn fill_pcm_i16_buffer(&mut self, out: &mut [i16]) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = pcm_to_i16(pcm);
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive signed 32-bit PCM samples (24-bit aligned).
+    pub fn fill_pcm_i32_buffer(&mut self, out: &mut [i32]) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = pcm_to_i32(pcm);
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive unsigned 8-bit DAC values (0..=255).
+    pub fn fill_dac_u8_buffer(&mut self, out: &mut [u8]) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = pcm_to_dac_u8(pcm);
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive unsigned 12-bit DAC values (0..=4095, e.g. STM32 DAC1).
+    pub fn fill_dac_u12_buffer(&mut self, out: &mut [u16]) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = pcm_to_dac_u12(pcm);
+        }
+        out.len()
+    }
+
+    /// Fill a DMA buffer with consecutive unsigned 16-bit DAC values (0..=65535).
+    pub fn fill_dac_u16_buffer(&mut self, out: &mut [u16]) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = pcm_to_dac_u16(pcm);
+        }
+        out.len()
+    }
+
+    /// Fill an interleaved stereo 16-bit PCM buffer (duplicating mono mixed sample to L and R channels).
+    pub fn fill_stereo_i16_buffer(&mut self, out: &mut [i16]) -> usize {
+        let mono_count = out.len() / 2;
+        for i in 0..mono_count {
+            let pcm = self.tick_mixed_pcm();
+            let sample = pcm_to_i16(pcm);
+            out[i * 2] = sample;
+            out[i * 2 + 1] = sample;
+        }
+        mono_count * 2
+    }
+
+    /// Fill an interleaved stereo 32-bit PCM buffer (for 24-bit / 32-bit SAI / I2S DMA peripherals).
+    pub fn fill_stereo_i32_buffer(&mut self, out: &mut [i32]) -> usize {
+        let mono_count = out.len() / 2;
+        for i in 0..mono_count {
+            let pcm = self.tick_mixed_pcm();
+            let sample = pcm_to_i32(pcm);
+            out[i * 2] = sample;
+            out[i * 2 + 1] = sample;
+        }
+        mono_count * 2
+    }
+
+    /// Generic buffer filling using a custom sample mapping closure.
+    pub fn fill_custom_buffer<T>(
+        &mut self,
+        out: &mut [T],
+        mut map_fn: impl FnMut(i8) -> T,
+    ) -> usize {
+        for slot in out.iter_mut() {
+            let pcm = self.tick_mixed_pcm();
+            *slot = map_fn(pcm);
         }
         out.len()
     }

@@ -80,15 +80,59 @@ cargo run --features std --bin eaf-preview -- --bank ui.bank --id 1 -o preview.w
 
 Uses `tick_pcm()` — the same mix/envelope path as firmware, before PWM mapping.
 
-## DMA buffer fill
+## Peripheral DMA & Format Buffering
+
+`embedded-audio` supports arbitrary hardware peripherals (PWM timers, 8/12/16-bit DACs, I2S / SAI audio codecs) via peripheral-agnostic buffer fillers:
 
 ```rust
-let mut dma = [0u16; 128];
-engine.fill_duty_buffer(&mut dma);
-// DMA TX from `dma` at sample_rate_hz
+// Fill DMA buffers for different peripherals:
+engine.fill_duty_buffer(&mut duty_buf);      // PWM timers (0..=period)
+engine.fill_dac_u8_buffer(&mut dac_u8_buf);    // 8-bit DACs (0..=255)
+engine.fill_dac_u12_buffer(&mut dac_u12_buf);  // 12-bit DACs (0..=4095, e.g. STM32 DAC1)
+engine.fill_dac_u16_buffer(&mut dac_u16_buf);  // 16-bit DACs (0..=65535)
+engine.fill_pcm_i16_buffer(&mut pcm_i16_buf);  // Signed 16-bit PCM (-32768..=32767)
+engine.fill_stereo_i16_buffer(&mut stereo_buf);// Interleaved stereo i16 for I2S/SAI
+```
+
+## Embassy Async DMA Integration
+
+Use `DmaDoubleBuffer` for zero-allocation ping-pong DMA streaming with Embassy async drivers:
+
+```rust
+use embedded_audio::prelude::*;
+
+// 256 samples per half-buffer
+let mut dma_pump = DmaDoubleBuffer::<u16, 256>::new();
+
+loop {
+    let buf = dma_pump.swap_and_get_next();
+    engine.fill_dac_u12_buffer(buf);
+
+    // Push via Embassy DMA write:
+    dac.write(buf).await;
+}
+```
+
+See [examples/embassy_stm32u585.rs](examples/embassy_stm32u585.rs) for a complete Embassy STM32U585CIU6 hardware example.
+
+## Wavetables & Synthesizers
+
+Play standard synthesized waveforms or custom 256-sample wavetables:
+
+```rust
+// Standard built-in wavetables: SINE_TABLE, TRIANGLE_TABLE, SAW_TABLE, SQUARE_TABLE, PULSE_25_TABLE
+engine.play_wavetable(&SAW_TABLE, 440, AdsrSpec::click())?;
+
+// Custom fixed-point wavetable generator:
+let custom_table = generate_wavetable_fixed(|phase_idx| {
+    // phase_idx: 0..255 -> return signed 8-bit sample -128..=127
+    (phase_idx as i16 - 128) as i8
+});
+engine.play_wavetable(&custom_table, 880, AdsrSpec::click())?;
 ```
 
 ## Defaults
+
 
 | Constant | Value |
 |----------|-------|

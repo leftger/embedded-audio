@@ -42,7 +42,7 @@ impl<'a> Voice<'a> {
 
     pub fn stop_immediate(&mut self) {
         self.source.stop();
-        self.adsr.release();
+        self.adsr = Adsr::new(AdsrSpec::click(), self.sample_rate_hz);
     }
 
     pub fn is_audible(&self) -> bool {

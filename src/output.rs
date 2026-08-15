@@ -122,3 +122,33 @@ impl PwmMapper {
 pub fn limit_bus(sum: i32) -> i8 {
     clamp_sample(sum)
 }
+
+/// Convert signed 8-bit PCM (-128..=127) to signed 16-bit PCM (-32768..=32767).
+#[inline]
+pub fn pcm_to_i16(pcm: i8) -> i16 {
+    (pcm as i16) << 8
+}
+
+/// Convert signed 8-bit PCM (-128..=127) to signed 32-bit PCM (24-bit aligned).
+#[inline]
+pub fn pcm_to_i32(pcm: i8) -> i32 {
+    (pcm as i32) << 24
+}
+
+/// Convert signed 8-bit PCM (-128..=127) to unsigned 8-bit DAC sample (0..=255).
+#[inline]
+pub fn pcm_to_dac_u8(pcm: i8) -> u8 {
+    (pcm as i16 + 128).clamp(0, 255) as u8
+}
+
+/// Convert signed 8-bit PCM (-128..=127) to unsigned 12-bit DAC sample (0..=4095, e.g. STM32 DAC1).
+#[inline]
+pub fn pcm_to_dac_u12(pcm: i8) -> u16 {
+    ((pcm as i32 + 128) * 4095 / 255).clamp(0, 4095) as u16
+}
+
+/// Convert signed 8-bit PCM (-128..=127) to unsigned 16-bit DAC sample (0..=65535).
+#[inline]
+pub fn pcm_to_dac_u16(pcm: i8) -> u16 {
+    ((pcm as i32 + 128) << 8).clamp(0, 65535) as u16
+}

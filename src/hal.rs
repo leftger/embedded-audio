@@ -62,3 +62,75 @@ impl PwmDutySink for DutyBuffer<'_> {
         }
     }
 }
+
+/// Double-buffer ping-pong manager for DMA audio streaming.
+///
+/// Designed to work seamlessly with async DMA drivers (e.g. Embassy `dac.write()`,
+/// `sai.write()`, `timer.write_dma()`, etc.) or IRQ-driven DMA half-transfer callbacks.
+#[derive(Debug, Clone)]
+pub struct DmaDoubleBuffer<T, const N: usize> {
+    buffer: [[T; N]; 2],
+    active_half: usize,
+}
+
+impl<T: Copy + Default, const N: usize> DmaDoubleBuffer<T, N> {
+    pub const HALF_SIZE: usize = N;
+    pub const TOTAL_SIZE: usize = N * 2;
+
+    pub fn new() -> Self {
+        Self {
+            buffer: [[T::default(); N]; 2],
+            active_half: 0,
+        }
+    }
+
+    pub const fn from_buffers(buf0: [T; N], buf1: [T; N]) -> Self {
+        Self {
+            buffer: [buf0, buf1],
+            active_half: 0,
+        }
+    }
+
+    /// Get reference to both half buffers.
+    pub fn buffers(&self) -> &[[T; N]; 2] {
+        &self.buffer
+    }
+
+    /// Get mutable reference to both half buffers.
+    pub fn buffers_mut(&mut self) -> &mut [[T; N]; 2] {
+        &mut self.buffer
+    }
+
+    /// Get current active half-buffer slice to fill with new samples.
+    pub fn current_half_mut(&mut self) -> &mut [T; N] {
+        &mut self.buffer[self.active_half]
+    }
+
+    /// Get current active half-buffer slice.
+    pub fn current_half(&self) -> &[T; N] {
+        &self.buffer[self.active_half]
+    }
+
+    /// Swap active half-buffer index and return mutable slice for the next batch.
+    pub fn swap_and_get_next(&mut self) -> &mut [T; N] {
+        self.active_half ^= 1;
+        self.current_half_mut()
+    }
+
+    /// Fill the inactive buffer half using `fill_fn`, then swap to make it active and return its slice.
+    pub fn fill_and_swap<F>(&mut self, mut fill_fn: F) -> &mut [T; N]
+    where
+        F: FnMut(&mut [T; N]),
+    {
+        let next_half = self.active_half ^ 1;
+        fill_fn(&mut self.buffer[next_half]);
+        self.active_half = next_half;
+        &mut self.buffer[next_half]
+    }
+}
+
+impl<T: Copy + Default, const N: usize> Default for DmaDoubleBuffer<T, N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}

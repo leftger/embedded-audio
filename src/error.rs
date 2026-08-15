@@ -10,6 +10,7 @@ pub enum AudioError {
     BankFull,
     VoiceBusy,
     PreviewIo,
+    InvalidPayload,
 }
 
 impl AudioError {
@@ -24,6 +25,7 @@ impl AudioError {
             Self::BankFull => "bank builder capacity exceeded",
             Self::VoiceBusy => "no free voice",
             Self::PreviewIo => "preview file I/O failed",
+            Self::InvalidPayload => "invalid effect payload",
         }
     }
 }
