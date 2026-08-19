@@ -1,0 +1,57 @@
+[package]
+name = "embedded-audio"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "no_std duty-modulated PWM audio: effect banks, tiered DSP, and mixing for Cortex-M"
+keywords = ["embedded", "audio", "pwm", "dsp", "no-std"]
+categories = ["embedded", "no-std"]
+readme = "README.md"
+
+[features]
+default = []
+std = []
+fm = []
+dsp = ["dep:embedded-dsp"]
+
+[dependencies]
+heapless = { workspace = true }
+embedded-dsp = { workspace = true, optional = true }
+
+[dev-dependencies]
+heapless = { workspace = true }
+embedded-dsp = { workspace = true }
+
+[lib]
+name = "embedded_audio"
+path = "src/lib.rs"
+
+[[bin]]
+name = "eaf-bake"
+path = "tools/bake/main.rs"
+required-features = ["std"]
+
+[[bin]]
+name = "eaf-preview"
+path = "tools/preview/main.rs"
+required-features = ["std"]
+
+[[test]]
+name = "tiers"
+path = "tests/tiers.rs"
+
+[[test]]
+name = "fm"
+path = "tests/fm.rs"
+required-features = ["fm"]
+
+[[test]]
+name = "buffer_and_bake"
+path = "tests/buffer_and_bake.rs"
+
+[[test]]
+name = "preview"
+path = "tests/preview.rs"
+required-features = ["std"]

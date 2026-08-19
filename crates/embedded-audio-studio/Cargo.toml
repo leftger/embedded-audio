@@ -1,0 +1,28 @@
+[package]
+name = "embedded-audio-studio"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Interactive DAW, Chiptune Tracker & Hardware Audio Studio for embedded-audio"
+keywords = ["daw", "audio", "embedded", "chiptune", "studio"]
+categories = ["embedded", "multimedia::audio", "development-tools"]
+
+[dependencies]
+embedded-audio = { workspace = true, features = ["std", "fm", "dsp"] }
+embedded-audio-codegen = { workspace = true }
+embedded-audio-live = { workspace = true }
+embedded-dsp = { workspace = true, features = ["std", "libm"] }
+eframe = { workspace = true }
+egui_extras = { workspace = true }
+cpal = { workspace = true }
+rfd = { workspace = true }
+nusb = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "embedded-audio-studio"
+path = "src/main.rs"

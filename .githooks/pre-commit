@@ -31,16 +31,16 @@ cargo fmt --all
 git add -- "${rust_related[@]}"
 
 echo "pre-commit: cargo check (all-features)"
-cargo check --lib --all-features
+cargo check --workspace --all-features
 
 echo "pre-commit: cargo check (no_std target)"
 rustup target add thumbv7em-none-eabihf 2>/dev/null || true
-cargo check --lib --no-default-features --target thumbv7em-none-eabihf
+cargo check --lib -p embedded-audio --no-default-features --target thumbv7em-none-eabihf
 
 echo "pre-commit: cargo clippy"
-cargo clippy --lib --all-features -- -W clippy::all
+cargo clippy --workspace --all-features -- -W clippy::all
 
 echo "pre-commit: cargo test"
-cargo test
+cargo test --workspace
 
 echo "pre-commit: ok"

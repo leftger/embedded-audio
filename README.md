@@ -5,7 +5,20 @@
 [![CI](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml/badge.svg)](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 
-`no_std` duty-modulated PWM audio for Cortex-M class MCUs: effect banks in external flash, tiered DSP, two-voice mixing, and crossfades.
+`no_std` duty-modulated PWM audio for Cortex-M / RISC-V MCUs: effect banks, tiered DSP, multi-voice mixing, and a full desktop DAW & Chiptune Audio Studio.
+
+## Workspace Structure
+
+- [`crates/embedded-audio`](crates/embedded-audio): Core `no_std` synthesis, decoding (ADPCM, PCM8), envelopes, and PWM/ΣΔ output pipelines.
+- [`crates/embedded-audio-codegen`](crates/embedded-audio-codegen): Rust `no_std` song & bank generators, C/C++ headers, and `.eaf` binary format compilers.
+- [`crates/embedded-audio-live`](crates/embedded-audio-live): Hardware-in-the-loop streaming protocol over USB CDC / Serial UART.
+- [`crates/embedded-audio-studio`](crates/embedded-audio-studio): Interactive desktop DAW with modern Piano-Roll & Step-Sequencer, Synth Lab, real-time Oscilloscope, PWM/ΣΔ pulse density stream visualizer, FFT spectrum analyzer, and MCU profiler.
+
+### Running the DAW Studio
+
+```bash
+cargo run -p embedded-audio-studio
+```
 
 ## Architecture
 

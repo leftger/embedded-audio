@@ -1,0 +1,17 @@
+[package]
+name = "embedded-audio-live"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Live streaming and hardware-in-the-loop bridge for embedded-audio"
+keywords = ["embedded", "audio", "live", "usb", "serial"]
+categories = ["embedded", "development-tools"]
+
+[dependencies]
+embedded-audio = { workspace = true, features = ["std", "fm", "dsp"] }
+embedded-audio-codegen = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
