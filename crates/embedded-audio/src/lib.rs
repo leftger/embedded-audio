@@ -25,6 +25,13 @@
 //! | C | Packed ΣΔ bitstream | Premium short sounds |
 //!
 //! Build banks on the host with the `eaf-bake` tool (`std` feature).
+//!
+//! # Procedural extras
+//!
+//! Standalone building blocks, composed manually rather than driven through the bank format:
+//! [`pluck::KarplusPluck`] (Karplus-Strong string) and [`fx`] (`Overdrive`, `Wavefolder`,
+//! `Tremolo`) need no extra feature; [`drums`] (`AnalogBassDrum`, `AnalogSnareDrum`, `HiHat`)
+//! and [`dsp`] need the `dsp` feature.
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -36,8 +43,10 @@ pub mod engine;
 pub mod envelope;
 pub mod error;
 pub mod fixed;
+pub mod fx;
 pub mod hal;
 pub mod output;
+pub mod pluck;
 pub mod prelude;
 pub mod source;
 pub mod stream;
@@ -57,6 +66,9 @@ pub mod profile;
 #[cfg(feature = "dsp")]
 pub mod dsp;
 
+#[cfg(feature = "dsp")]
+pub mod drums;
+
 pub use bank::{BANK_BUILD_CAP, BANK_MAGIC, BANK_VERSION, BankBuilder, EffectEntry, SoundBank};
 pub use config::{
     AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD, DEFAULT_SAMPLE_RATE_HZ,
@@ -70,10 +82,12 @@ pub use fixed::{db_to_q8, q8_to_db};
 pub use hal::{
     DmaDoubleBuffer, DutyBuffer, PwmDutySink, fill_buffer_into, fill_dma_half_buffers, tick_into,
 };
+pub use fx::{Overdrive, Tremolo, Wavefolder};
 pub use output::{
     DutyMode, PwmMapper, SigmaDelta, SigmaDelta2ndOrder, pcm_to_dac_u8, pcm_to_dac_u12,
     pcm_to_dac_u16, pcm_to_i16, pcm_to_i32,
 };
+pub use pluck::KarplusPluck;
 pub use source::VoiceSource;
 pub use stream::SigmaDeltaBitStream;
 pub use synth::{
@@ -96,3 +110,6 @@ pub use dsp::{
     AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter,
     BiquadAudioFilterQ15, EnvelopeFollower, GoertzelDetector, WindowType,
 };
+
+#[cfg(feature = "dsp")]
+pub use drums::{AnalogBassDrum, AnalogSnareDrum, HiHat};
