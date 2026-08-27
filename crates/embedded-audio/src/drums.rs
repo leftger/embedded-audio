@@ -244,7 +244,11 @@ impl AnalogBassDrum {
             self.lp_out = self.resonator.low();
         }
 
-        one_pole(&mut self.tone_lp, pulse * exciter_leak + resonator_out, tone_f);
+        one_pole(
+            &mut self.tone_lp,
+            pulse * exciter_leak + resonator_out,
+            tone_f,
+        );
         self.tone_lp
     }
 }
@@ -426,7 +430,12 @@ impl AnalogSnareDrum {
 
         let mut noise = (2.0 * self.noise.next_unipolar() - 1.0).max(0.0);
         self.noise_envelope *= noise_envelope_decay;
-        noise *= (if self.sustain { sustain_gain } else { self.noise_envelope }) * snappy * 2.0;
+        noise *= (if self.sustain {
+            sustain_gain
+        } else {
+            self.noise_envelope
+        }) * snappy
+            * 2.0;
 
         self.noise_filter.process(noise);
         let filtered_noise = self.noise_filter.band();

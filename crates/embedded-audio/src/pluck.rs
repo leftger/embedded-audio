@@ -109,7 +109,11 @@ impl<const N: usize> KarplusPluck<N> {
         }
 
         let period = self.period.max(2);
-        let next_pos = if self.pos + 1 >= period { 0 } else { self.pos + 1 };
+        let next_pos = if self.pos + 1 >= period {
+            0
+        } else {
+            self.pos + 1
+        };
         let a = self.buffer[self.pos] as i32;
         let b = self.buffer[next_pos] as i32;
         let blended = a + ((b - a) * self.brightness_q8 as i32) / 256;

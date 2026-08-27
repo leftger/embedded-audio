@@ -67,7 +67,11 @@ impl Overdrive {
 
 fn floor_f32(x: f32) -> f32 {
     let truncated = x as i32 as f32;
-    if truncated > x { truncated - 1.0 } else { truncated }
+    if truncated > x {
+        truncated - 1.0
+    } else {
+        truncated
+    }
 }
 
 /// Wavefolder, ported from `daisysp::Wavefolder`. Input magnitude beyond `1.0` (post-gain)

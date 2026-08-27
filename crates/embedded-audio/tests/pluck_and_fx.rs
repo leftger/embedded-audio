@@ -62,7 +62,10 @@ fn test_wavefolder_identity_at_unity_gain_small_signal() {
     // Below the fold threshold (|x| <= 1), the folder is a no-op.
     assert_eq!(folder.process(0), 0);
     let out = folder.process(50);
-    assert!((out - 50).abs() <= 1, "small signal should pass through ~unchanged: {out}");
+    assert!(
+        (out - 50).abs() <= 1,
+        "small signal should pass through ~unchanged: {out}"
+    );
 }
 
 #[test]
@@ -100,5 +103,8 @@ fn test_tremolo_full_depth_modulates_amplitude() {
         min_out = min_out.min(out);
         max_out = max_out.max(out);
     }
-    assert!(max_out > min_out, "full-depth tremolo should visibly vary amplitude");
+    assert!(
+        max_out > min_out,
+        "full-depth tremolo should visibly vary amplitude"
+    );
 }
