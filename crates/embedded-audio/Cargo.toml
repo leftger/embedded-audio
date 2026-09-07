@@ -8,7 +8,7 @@ repository.workspace = true
 description = "no_std duty-modulated PWM audio: effect banks, tiered DSP, and mixing for Cortex-M"
 keywords = ["embedded", "audio", "pwm", "dsp", "no-std"]
 categories = ["embedded", "no-std"]
-readme = "README.md"
+readme = "../../README.md"
 
 [features]
 default = []
