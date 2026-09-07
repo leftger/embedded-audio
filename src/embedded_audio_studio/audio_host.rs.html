@@ -734,7 +734,7 @@
 <a href=#734 id=734 data-nosnippet>734</a>
 <a href=#735 id=735 data-nosnippet>735</a>    <span class="kw">fn </span>init_cpal_stream() -&gt; (<span class="prelude-ty">Option</span>&lt;cpal::Stream&gt;, u32) {
 <a href=#736 id=736 data-nosnippet>736</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>((<span class="kw">_</span>, config)) = <span class="self">Self</span>::get_device_and_config() {
-<a href=#737 id=737 data-nosnippet>737</a>            <span class="kw">let </span>sample_rate = config.sample_rate().<span class="number">0</span>;
+<a href=#737 id=737 data-nosnippet>737</a>            <span class="kw">let </span>sample_rate = config.sample_rate();
 <a href=#738 id=738 data-nosnippet>738</a>            (<span class="prelude-val">None</span>, sample_rate)
 <a href=#739 id=739 data-nosnippet>739</a>        } <span class="kw">else </span>{
 <a href=#740 id=740 data-nosnippet>740</a>            (<span class="prelude-val">None</span>, <span class="number">44100</span>)
@@ -751,7 +751,7 @@
 <a href=#751 id=751 data-nosnippet>751</a>
 <a href=#752 id=752 data-nosnippet>752</a>        <span class="kw">let </span>stream_res = <span class="kw">match </span>config.sample_format() {
 <a href=#753 id=753 data-nosnippet>753</a>            cpal::SampleFormat::F32 =&gt; device.build_output_stream(
-<a href=#754 id=754 data-nosnippet>754</a>                <span class="kw-2">&amp;</span>config.clone().into(),
+<a href=#754 id=754 data-nosnippet>754</a>                config.clone().into(),
 <a href=#755 id=755 data-nosnippet>755</a>                <span class="kw">move </span>|data: <span class="kw-2">&amp;mut </span>[f32], <span class="kw">_</span>: <span class="kw-2">&amp;</span>cpal::OutputCallbackInfo| {
 <a href=#756 id=756 data-nosnippet>756</a>                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>state_guard) = state.lock() {
 <a href=#757 id=757 data-nosnippet>757</a>                        <span class="kw">for </span>frame <span class="kw">in </span>data.chunks_mut(channels) {
@@ -766,7 +766,7 @@
 <a href=#766 id=766 data-nosnippet>766</a>                <span class="prelude-val">None</span>,
 <a href=#767 id=767 data-nosnippet>767</a>            ),
 <a href=#768 id=768 data-nosnippet>768</a>            cpal::SampleFormat::I16 =&gt; device.build_output_stream(
-<a href=#769 id=769 data-nosnippet>769</a>                <span class="kw-2">&amp;</span>config.clone().into(),
+<a href=#769 id=769 data-nosnippet>769</a>                config.clone().into(),
 <a href=#770 id=770 data-nosnippet>770</a>                <span class="kw">move </span>|data: <span class="kw-2">&amp;mut </span>[i16], <span class="kw">_</span>: <span class="kw-2">&amp;</span>cpal::OutputCallbackInfo| {
 <a href=#771 id=771 data-nosnippet>771</a>                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>state_guard) = state.lock() {
 <a href=#772 id=772 data-nosnippet>772</a>                        <span class="kw">for </span>frame <span class="kw">in </span>data.chunks_mut(channels) {
@@ -782,7 +782,7 @@
 <a href=#782 id=782 data-nosnippet>782</a>                <span class="prelude-val">None</span>,
 <a href=#783 id=783 data-nosnippet>783</a>            ),
 <a href=#784 id=784 data-nosnippet>784</a>            cpal::SampleFormat::U16 =&gt; device.build_output_stream(
-<a href=#785 id=785 data-nosnippet>785</a>                <span class="kw-2">&amp;</span>config.clone().into(),
+<a href=#785 id=785 data-nosnippet>785</a>                config.clone().into(),
 <a href=#786 id=786 data-nosnippet>786</a>                <span class="kw">move </span>|data: <span class="kw-2">&amp;mut </span>[u16], <span class="kw">_</span>: <span class="kw-2">&amp;</span>cpal::OutputCallbackInfo| {
 <a href=#787 id=787 data-nosnippet>787</a>                    <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>state_guard) = state.lock() {
 <a href=#788 id=788 data-nosnippet>788</a>                        <span class="kw">for </span>frame <span class="kw">in </span>data.chunks_mut(channels) {

@@ -70,10 +70,10 @@
 <a href=#70 id=70 data-nosnippet>70</a>                });
 <a href=#71 id=71 data-nosnippet>71</a>                ui.add_space(<span class="number">4.0</span>);
 <a href=#72 id=72 data-nosnippet>72</a>
-<a href=#73 id=73 data-nosnippet>73</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span>str, wrap_width: f32| {
-<a href=#74 id=74 data-nosnippet>74</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text, <span class="bool-val">true</span>);
+<a href=#73 id=73 data-nosnippet>73</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span><span class="kw">dyn </span>egui::TextBuffer, wrap_width: f32| {
+<a href=#74 id=74 data-nosnippet>74</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text.as_str(), <span class="bool-val">true</span>);
 <a href=#75 id=75 data-nosnippet>75</a>                    layout_job.wrap.max_width = wrap_width;
-<a href=#76 id=76 data-nosnippet>76</a>                    ui.fonts(|f| f.layout_job(layout_job))
+<a href=#76 id=76 data-nosnippet>76</a>                    ui.fonts_mut(|f| f.layout_job(layout_job))
 <a href=#77 id=77 data-nosnippet>77</a>                };
 <a href=#78 id=78 data-nosnippet>78</a>
 <a href=#79 id=79 data-nosnippet>79</a>                egui::ScrollArea::both().max_height(<span class="number">380.0</span>).show(ui, |ui| {
@@ -96,10 +96,10 @@
 <a href=#96 id=96 data-nosnippet>96</a>                ui.label(egui::RichText::new(<span class="string">"Compatible with embassy-executor, embassy-time, embassy-sync, embassy-stm32, and embassy-rp."</span>).small());
 <a href=#97 id=97 data-nosnippet>97</a>                ui.add_space(<span class="number">4.0</span>);
 <a href=#98 id=98 data-nosnippet>98</a>
-<a href=#99 id=99 data-nosnippet>99</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span>str, wrap_width: f32| {
-<a href=#100 id=100 data-nosnippet>100</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text, <span class="bool-val">true</span>);
+<a href=#99 id=99 data-nosnippet>99</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span><span class="kw">dyn </span>egui::TextBuffer, wrap_width: f32| {
+<a href=#100 id=100 data-nosnippet>100</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text.as_str(), <span class="bool-val">true</span>);
 <a href=#101 id=101 data-nosnippet>101</a>                    layout_job.wrap.max_width = wrap_width;
-<a href=#102 id=102 data-nosnippet>102</a>                    ui.fonts(|f| f.layout_job(layout_job))
+<a href=#102 id=102 data-nosnippet>102</a>                    ui.fonts_mut(|f| f.layout_job(layout_job))
 <a href=#103 id=103 data-nosnippet>103</a>                };
 <a href=#104 id=104 data-nosnippet>104</a>
 <a href=#105 id=105 data-nosnippet>105</a>                egui::ScrollArea::both().max_height(<span class="number">380.0</span>).show(ui, |ui| {
@@ -121,10 +121,10 @@
 <a href=#121 id=121 data-nosnippet>121</a>                });
 <a href=#122 id=122 data-nosnippet>122</a>                ui.add_space(<span class="number">4.0</span>);
 <a href=#123 id=123 data-nosnippet>123</a>
-<a href=#124 id=124 data-nosnippet>124</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span>str, wrap_width: f32| {
-<a href=#125 id=125 data-nosnippet>125</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text, <span class="bool-val">false</span>);
+<a href=#124 id=124 data-nosnippet>124</a>                <span class="kw">let </span><span class="kw-2">mut </span>layouter = |ui: <span class="kw-2">&amp;</span>egui::Ui, text: <span class="kw-2">&amp;</span><span class="kw">dyn </span>egui::TextBuffer, wrap_width: f32| {
+<a href=#125 id=125 data-nosnippet>125</a>                    <span class="kw">let </span><span class="kw-2">mut </span>layout_job = highlight_code(text.as_str(), <span class="bool-val">false</span>);
 <a href=#126 id=126 data-nosnippet>126</a>                    layout_job.wrap.max_width = wrap_width;
-<a href=#127 id=127 data-nosnippet>127</a>                    ui.fonts(|f| f.layout_job(layout_job))
+<a href=#127 id=127 data-nosnippet>127</a>                    ui.fonts_mut(|f| f.layout_job(layout_job))
 <a href=#128 id=128 data-nosnippet>128</a>                };
 <a href=#129 id=129 data-nosnippet>129</a>
 <a href=#130 id=130 data-nosnippet>130</a>                egui::ScrollArea::both().max_height(<span class="number">380.0</span>).show(ui, |ui| {

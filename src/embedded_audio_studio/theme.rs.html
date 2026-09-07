@@ -3,33 +3,32 @@
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>eframe::egui;
 <a href=#4 id=4 data-nosnippet>4</a>
 <a href=#5 id=5 data-nosnippet>5</a><span class="kw">pub fn </span>configure_theme(ctx: <span class="kw-2">&amp;</span>egui::Context) {
-<a href=#6 id=6 data-nosnippet>6</a>    <span class="kw">let </span><span class="kw-2">mut </span>style = (<span class="kw-2">*</span>ctx.style()).clone();
-<a href=#7 id=7 data-nosnippet>7</a>
-<a href=#8 id=8 data-nosnippet>8</a>    <span class="comment">// Dark cyberpunk/chiptune aesthetic
-<a href=#9 id=9 data-nosnippet>9</a>    </span>style.visuals.dark_mode = <span class="bool-val">true</span>;
-<a href=#10 id=10 data-nosnippet>10</a>    style.visuals.override_text_color = <span class="prelude-val">Some</span>(egui::Color32::from_rgb(<span class="number">220</span>, <span class="number">230</span>, <span class="number">242</span>));
+<a href=#6 id=6 data-nosnippet>6</a>    ctx.set_theme(egui::ThemePreference::Dark);
+<a href=#7 id=7 data-nosnippet>7</a>    ctx.style_mut_of(egui::Theme::Dark, |style| {
+<a href=#8 id=8 data-nosnippet>8</a>        <span class="comment">// Dark cyberpunk/chiptune aesthetic
+<a href=#9 id=9 data-nosnippet>9</a>        </span>style.visuals.dark_mode = <span class="bool-val">true</span>;
+<a href=#10 id=10 data-nosnippet>10</a>        style.visuals.override_text_color = <span class="prelude-val">Some</span>(egui::Color32::from_rgb(<span class="number">220</span>, <span class="number">230</span>, <span class="number">242</span>));
 <a href=#11 id=11 data-nosnippet>11</a>
-<a href=#12 id=12 data-nosnippet>12</a>    style.visuals.window_fill = egui::Color32::from_rgb(<span class="number">18</span>, <span class="number">20</span>, <span class="number">28</span>);
-<a href=#13 id=13 data-nosnippet>13</a>    style.visuals.panel_fill = egui::Color32::from_rgb(<span class="number">14</span>, <span class="number">16</span>, <span class="number">22</span>);
+<a href=#12 id=12 data-nosnippet>12</a>        style.visuals.window_fill = egui::Color32::from_rgb(<span class="number">18</span>, <span class="number">20</span>, <span class="number">28</span>);
+<a href=#13 id=13 data-nosnippet>13</a>        style.visuals.panel_fill = egui::Color32::from_rgb(<span class="number">14</span>, <span class="number">16</span>, <span class="number">22</span>);
 <a href=#14 id=14 data-nosnippet>14</a>
-<a href=#15 id=15 data-nosnippet>15</a>    style.visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(<span class="number">22</span>, <span class="number">25</span>, <span class="number">36</span>);
-<a href=#16 id=16 data-nosnippet>16</a>    style.visuals.widgets.noninteractive.bg_stroke =
-<a href=#17 id=17 data-nosnippet>17</a>        egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">45</span>, <span class="number">52</span>, <span class="number">70</span>));
+<a href=#15 id=15 data-nosnippet>15</a>        style.visuals.widgets.noninteractive.bg_fill = egui::Color32::from_rgb(<span class="number">22</span>, <span class="number">25</span>, <span class="number">36</span>);
+<a href=#16 id=16 data-nosnippet>16</a>        style.visuals.widgets.noninteractive.bg_stroke =
+<a href=#17 id=17 data-nosnippet>17</a>            egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">45</span>, <span class="number">52</span>, <span class="number">70</span>));
 <a href=#18 id=18 data-nosnippet>18</a>
-<a href=#19 id=19 data-nosnippet>19</a>    style.visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(<span class="number">28</span>, <span class="number">33</span>, <span class="number">48</span>);
-<a href=#20 id=20 data-nosnippet>20</a>    style.visuals.widgets.inactive.bg_stroke =
-<a href=#21 id=21 data-nosnippet>21</a>        egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">50</span>, <span class="number">60</span>, <span class="number">85</span>));
+<a href=#19 id=19 data-nosnippet>19</a>        style.visuals.widgets.inactive.bg_fill = egui::Color32::from_rgb(<span class="number">28</span>, <span class="number">33</span>, <span class="number">48</span>);
+<a href=#20 id=20 data-nosnippet>20</a>        style.visuals.widgets.inactive.bg_stroke =
+<a href=#21 id=21 data-nosnippet>21</a>            egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">50</span>, <span class="number">60</span>, <span class="number">85</span>));
 <a href=#22 id=22 data-nosnippet>22</a>
-<a href=#23 id=23 data-nosnippet>23</a>    style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(<span class="number">42</span>, <span class="number">50</span>, <span class="number">75</span>);
-<a href=#24 id=24 data-nosnippet>24</a>    style.visuals.widgets.hovered.bg_stroke =
-<a href=#25 id=25 data-nosnippet>25</a>        egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">100</span>, <span class="number">160</span>, <span class="number">255</span>));
+<a href=#23 id=23 data-nosnippet>23</a>        style.visuals.widgets.hovered.bg_fill = egui::Color32::from_rgb(<span class="number">42</span>, <span class="number">50</span>, <span class="number">75</span>);
+<a href=#24 id=24 data-nosnippet>24</a>        style.visuals.widgets.hovered.bg_stroke =
+<a href=#25 id=25 data-nosnippet>25</a>            egui::Stroke::new(<span class="number">1.0_f32</span>, egui::Color32::from_rgb(<span class="number">100</span>, <span class="number">160</span>, <span class="number">255</span>));
 <a href=#26 id=26 data-nosnippet>26</a>
-<a href=#27 id=27 data-nosnippet>27</a>    style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(<span class="number">60</span>, <span class="number">90</span>, <span class="number">150</span>);
-<a href=#28 id=28 data-nosnippet>28</a>    style.visuals.widgets.active.bg_stroke =
-<a href=#29 id=29 data-nosnippet>29</a>        egui::Stroke::new(<span class="number">1.5_f32</span>, egui::Color32::from_rgb(<span class="number">140</span>, <span class="number">200</span>, <span class="number">255</span>));
+<a href=#27 id=27 data-nosnippet>27</a>        style.visuals.widgets.active.bg_fill = egui::Color32::from_rgb(<span class="number">60</span>, <span class="number">90</span>, <span class="number">150</span>);
+<a href=#28 id=28 data-nosnippet>28</a>        style.visuals.widgets.active.bg_stroke =
+<a href=#29 id=29 data-nosnippet>29</a>            egui::Stroke::new(<span class="number">1.5_f32</span>, egui::Color32::from_rgb(<span class="number">140</span>, <span class="number">200</span>, <span class="number">255</span>));
 <a href=#30 id=30 data-nosnippet>30</a>
-<a href=#31 id=31 data-nosnippet>31</a>    style.visuals.selection.bg_fill = egui::Color32::from_rgb(<span class="number">70</span>, <span class="number">120</span>, <span class="number">210</span>);
-<a href=#32 id=32 data-nosnippet>32</a>
-<a href=#33 id=33 data-nosnippet>33</a>    ctx.set_style(style);
-<a href=#34 id=34 data-nosnippet>34</a>}
+<a href=#31 id=31 data-nosnippet>31</a>        style.visuals.selection.bg_fill = egui::Color32::from_rgb(<span class="number">70</span>, <span class="number">120</span>, <span class="number">210</span>);
+<a href=#32 id=32 data-nosnippet>32</a>    });
+<a href=#33 id=33 data-nosnippet>33</a>}
 </code></pre></div></section></main></body></html>
