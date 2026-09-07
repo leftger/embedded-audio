@@ -81,7 +81,9 @@ impl EmbeddedAudioStudioApp {
 }
 
 impl eframe::App for EmbeddedAudioStudioApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let ctx = ui.ctx().clone();
+
         // Handle synth lab note preview triggers
         if let Some((inst_idx, midi_note)) = self.synth_lab_state.preview_note_trigger.take() {
             if let Ok(mut host) = self.audio_state.lock() {
@@ -97,7 +99,7 @@ impl eframe::App for EmbeddedAudioStudioApp {
         }
 
         // Top Transport & Navigation Panel (Clean 2-tier responsive layout)
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
+        egui::Panel::top("top_panel").show(ui, |ui| {
             ui.add_space(3.0);
 
             // Tier 1: App Brand, Transport Controls, Tempo, Hardware Profile & Presets
@@ -331,7 +333,7 @@ impl eframe::App for EmbeddedAudioStudioApp {
         });
 
         // Bottom Status Bar
-        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+        egui::Panel::bottom("status_bar").show(ui, |ui| {
             ui.horizontal(|ui| {
                 let vis = self.visualizer_data.lock().unwrap().clone();
                 ui.label(format!(
@@ -363,7 +365,7 @@ impl eframe::App for EmbeddedAudioStudioApp {
         });
 
         // Central Workspace Area
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             let vis = self.visualizer_data.lock().unwrap().clone();
 
             match self.active_tab {

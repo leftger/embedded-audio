@@ -70,10 +70,10 @@ pub fn render_exporter(ui: &mut egui::Ui, state: &mut ExporterState, project: &D
                 });
                 ui.add_space(4.0);
 
-                let mut layouter = |ui: &egui::Ui, text: &str, wrap_width: f32| {
-                    let mut layout_job = highlight_code(text, true);
+                let mut layouter = |ui: &egui::Ui, text: &dyn egui::TextBuffer, wrap_width: f32| {
+                    let mut layout_job = highlight_code(text.as_str(), true);
                     layout_job.wrap.max_width = wrap_width;
-                    ui.fonts(|f| f.layout_job(layout_job))
+                    ui.fonts_mut(|f| f.layout_job(layout_job))
                 };
 
                 egui::ScrollArea::both().max_height(380.0).show(ui, |ui| {
@@ -96,10 +96,10 @@ pub fn render_exporter(ui: &mut egui::Ui, state: &mut ExporterState, project: &D
                 ui.label(egui::RichText::new("Compatible with embassy-executor, embassy-time, embassy-sync, embassy-stm32, and embassy-rp.").small());
                 ui.add_space(4.0);
 
-                let mut layouter = |ui: &egui::Ui, text: &str, wrap_width: f32| {
-                    let mut layout_job = highlight_code(text, true);
+                let mut layouter = |ui: &egui::Ui, text: &dyn egui::TextBuffer, wrap_width: f32| {
+                    let mut layout_job = highlight_code(text.as_str(), true);
                     layout_job.wrap.max_width = wrap_width;
-                    ui.fonts(|f| f.layout_job(layout_job))
+                    ui.fonts_mut(|f| f.layout_job(layout_job))
                 };
 
                 egui::ScrollArea::both().max_height(380.0).show(ui, |ui| {
@@ -121,10 +121,10 @@ pub fn render_exporter(ui: &mut egui::Ui, state: &mut ExporterState, project: &D
                 });
                 ui.add_space(4.0);
 
-                let mut layouter = |ui: &egui::Ui, text: &str, wrap_width: f32| {
-                    let mut layout_job = highlight_code(text, false);
+                let mut layouter = |ui: &egui::Ui, text: &dyn egui::TextBuffer, wrap_width: f32| {
+                    let mut layout_job = highlight_code(text.as_str(), false);
                     layout_job.wrap.max_width = wrap_width;
-                    ui.fonts(|f| f.layout_job(layout_job))
+                    ui.fonts_mut(|f| f.layout_job(layout_job))
                 };
 
                 egui::ScrollArea::both().max_height(380.0).show(ui, |ui| {

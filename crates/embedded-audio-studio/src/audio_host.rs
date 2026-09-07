@@ -734,7 +734,7 @@ impl HostAudioDevice {
 
     fn init_cpal_stream() -> (Option<cpal::Stream>, u32) {
         if let Some((_, config)) = Self::get_device_and_config() {
-            let sample_rate = config.sample_rate().0;
+            let sample_rate = config.sample_rate();
             (None, sample_rate)
         } else {
             (None, 44100)
@@ -751,7 +751,7 @@ impl HostAudioDevice {
 
         let stream_res = match config.sample_format() {
             cpal::SampleFormat::F32 => device.build_output_stream(
-                &config.clone().into(),
+                config.clone().into(),
                 move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                     if let Ok(mut state_guard) = state.lock() {
                         for frame in data.chunks_mut(channels) {
@@ -766,7 +766,7 @@ impl HostAudioDevice {
                 None,
             ),
             cpal::SampleFormat::I16 => device.build_output_stream(
-                &config.clone().into(),
+                config.clone().into(),
                 move |data: &mut [i16], _: &cpal::OutputCallbackInfo| {
                     if let Ok(mut state_guard) = state.lock() {
                         for frame in data.chunks_mut(channels) {
@@ -782,7 +782,7 @@ impl HostAudioDevice {
                 None,
             ),
             cpal::SampleFormat::U16 => device.build_output_stream(
-                &config.clone().into(),
+                config.clone().into(),
                 move |data: &mut [u16], _: &cpal::OutputCallbackInfo| {
                     if let Ok(mut state_guard) = state.lock() {
                         for frame in data.chunks_mut(channels) {
