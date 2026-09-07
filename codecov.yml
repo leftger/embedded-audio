@@ -1,10 +1,14 @@
 ignore:
   - "embedded-audio-studio/**"
   - "crates/embedded-audio-studio/**"
-  - "crates/embedded-audio/tools/**"
+  - "**/embedded-audio-studio/**"
   - "embedded-audio/tools/**"
+  - "crates/embedded-audio/tools/**"
+  - "**/embedded-audio/tools/**"
   - "benches/**"
+  - "**/benches/**"
   - "examples/**"
+  - "**/examples/**"
 
 coverage:
   status:
