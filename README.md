@@ -2,7 +2,8 @@
 
 [![crates.io](https://img.shields.io/crates/v/embedded-audio.svg)](https://crates.io/crates/embedded-audio)
 [![docs.rs](https://img.shields.io/docsrs/embedded-audio)](https://docs.rs/embedded-audio)
-[![CI](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml/badge.svg)](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml)
+[![CI](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/leftger/embedded-audio/branch/main/graph/badge.svg)](https://codecov.io/gh/leftger/embedded-audio)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
 
 `no_std` duty-modulated PWM audio for Cortex-M / RISC-V MCUs: effect banks, tiered DSP, multi-voice mixing, and a full desktop DAW & Chiptune Audio Studio.
