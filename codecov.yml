@@ -1,0 +1,18 @@
+ignore:
+  - "embedded-audio-studio/**"
+  - "crates/embedded-audio-studio/**"
+  - "crates/embedded-audio/tools/**"
+  - "embedded-audio/tools/**"
+  - "benches/**"
+  - "examples/**"
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 60%
+        threshold: 1%
