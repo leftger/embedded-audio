@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PWM_BUFFER_SIZE","SCOPE_BUFFER_SIZE","SPECTRUM_FFT_SIZE"],"fn":["hz_to_phase_inc","midi_note_to_freq"],"struct":["ActiveTrackVoice","AudioHostState","HostAudioDevice","LfsrNoise","VisualizerData"]};

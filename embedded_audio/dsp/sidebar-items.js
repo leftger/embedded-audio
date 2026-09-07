@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["WindowType"],"struct":["AudioLmsFilter","AudioMeter","AudioSpectrumAnalyzer","AudioStats","BiquadAudioFilter","BiquadAudioFilterQ15","EnvelopeFollower","GoertzelDetector"]};

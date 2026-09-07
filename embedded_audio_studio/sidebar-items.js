@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["main"],"mod":["app","audio_host","device_link","exporter","piano_roll","synth_lab","theme","visualizers"]};

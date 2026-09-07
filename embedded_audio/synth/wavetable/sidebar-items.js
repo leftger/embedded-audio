@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["generate_wavetable_fixed"],"static":["PULSE_25_TABLE","SAW_TABLE","SINE_TABLE","SQUARE_TABLE","TRIANGLE_TABLE"],"struct":["WavetableVoice"]};

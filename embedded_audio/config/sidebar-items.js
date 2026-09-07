@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DEFAULT_PWM_CARRIER_HZ","DEFAULT_PWM_PERIOD","DEFAULT_SAMPLE_RATE_HZ"],"fn":["crossfade_step_q8"],"struct":["AudioConfig"]};

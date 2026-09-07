@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["c_gen","embassy_gen","project","rust_gen"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["apply_gain_q8","clamp_sample","db_to_q8","hz_to_phase_inc","lerp_i8","mix_crossfade","phase_index","q8_to_db","sin_table"],"type":["Phase"]};

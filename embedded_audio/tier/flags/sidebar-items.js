@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["LOOP","ONE_SHOT","SIGNED"]};

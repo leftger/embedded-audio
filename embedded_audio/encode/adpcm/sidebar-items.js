@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["encode_i16","encode_u8"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BANK_BUILD_CAP","BANK_MAGIC","BANK_VERSION","ENTRY_SIZE","HEADER_SIZE"],"struct":["BankBuilder","EffectEntry","SoundBank"]};

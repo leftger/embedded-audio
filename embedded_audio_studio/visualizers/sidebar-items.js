@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["render_dma_buffer_monitor","render_mcu_profiler","render_piezo_acoustic_curve","render_pwm_stream","render_scope","render_spectrum","render_visualizers"]};

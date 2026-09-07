@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["bank","config","decode","drums","dsp","encode","engine","envelope","error","fixed","fx","hal","output","pluck","prelude","preview","profile","source","stream","synth","tier","voice"]};

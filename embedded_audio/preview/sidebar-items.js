@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["render_effect_pcm","render_effect_wav"]};
