@@ -250,3 +250,51 @@ fn test_dma_double_buffer() {
         engine.fill_dac_u12_buffer(slice);
     });
 }
+
+#[test]
+fn test_polyblep_oscillator_shapes() {
+    let waveforms = [
+        PolyBlepWaveform::Sine,
+        PolyBlepWaveform::Sawtooth,
+        PolyBlepWaveform::Square,
+        PolyBlepWaveform::Triangle,
+    ];
+
+    for wf in waveforms {
+        let mut osc = PolyBlepOscillator::new(440, 48_000, wf);
+        let mut samples = [0.0f32; 128];
+        for s in &mut samples {
+            *s = osc.next_sample();
+            assert!(s.is_finite());
+            assert!(*s >= -1.05 && *s <= 1.05);
+        }
+        // Verify signal is non-silent
+        assert!(samples.iter().any(|&s| s.abs() > 0.1));
+    }
+}
+
+#[test]
+fn test_polyblep_voice_and_engine_integration() {
+    let mut voice = PolyBlepVoice::new();
+    voice.start(440, 20, PolyBlepWaveform::Sawtooth, 16_000);
+    assert!(voice.is_active());
+    assert_eq!(voice.carrier_hz(), 440);
+
+    let mut generated = 0;
+    while let Some(sample) = voice.next_sample() {
+        assert!(sample >= -127);
+        generated += 1;
+    }
+    // 20 ms at 16,000 Hz = 320 samples
+    assert_eq!(generated, 320);
+    assert!(!voice.is_active());
+
+    // Test AudioEngine play_polyblep
+    let mut engine = AudioEngine::from_sample_rate(16000, 1000, DutyMode::Linear);
+    engine.play_polyblep(880, 50, PolyBlepWaveform::Square);
+    assert!(engine.is_playing());
+
+    let mut buf = [0i8; 64];
+    engine.fill_pcm_i8_buffer(&mut buf);
+    assert!(buf.iter().any(|&s| s != 0));
+}

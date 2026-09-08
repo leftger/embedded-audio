@@ -1,8 +1,10 @@
 pub mod fm;
+pub mod polyblep;
 pub mod tone;
 pub mod wavetable;
 
 pub use fm::FmVoice;
+pub use polyblep::{PolyBlepOscillator, PolyBlepVoice, PolyBlepWaveform, poly_blamp, poly_blep};
 pub use tone::{ToneParams, ToneVoice, Waveform};
 pub use wavetable::{
     PULSE_25_TABLE, SAW_TABLE, SINE_TABLE, SQUARE_TABLE, TRIANGLE_TABLE, WavetableVoice,

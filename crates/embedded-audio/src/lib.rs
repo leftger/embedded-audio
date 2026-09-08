@@ -91,8 +91,9 @@ pub use pluck::KarplusPluck;
 pub use source::VoiceSource;
 pub use stream::SigmaDeltaBitStream;
 pub use synth::{
-    FmVoice, PULSE_25_TABLE, SAW_TABLE, SINE_TABLE, SQUARE_TABLE, TRIANGLE_TABLE, ToneParams,
-    ToneVoice, Waveform, WavetableVoice, generate_wavetable_fixed,
+    FmVoice, PULSE_25_TABLE, PolyBlepOscillator, PolyBlepVoice, PolyBlepWaveform, SAW_TABLE,
+    SINE_TABLE, SQUARE_TABLE, TRIANGLE_TABLE, ToneParams, ToneVoice, Waveform, WavetableVoice,
+    generate_wavetable_fixed, poly_blamp, poly_blep,
 };
 pub use tier::{EffectKind, flags};
 

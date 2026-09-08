@@ -459,6 +459,23 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
         }
     }
 
+    /// Play anti-aliased band-limited tone using PolyBLEP.
+    pub fn play_polyblep(
+        &mut self,
+        freq_hz: u32,
+        duration_ms: u16,
+        waveform: crate::synth::PolyBlepWaveform,
+    ) {
+        let rate = self.config.sample_rate_hz;
+        if N > 0 {
+            self.voices[0] = Voice::silent(rate);
+            self.voices[0]
+                .source
+                .start_polyblep(freq_hz, duration_ms, waveform, rate);
+            self.voices[0].trigger_adsr(AdsrSpec::click());
+        }
+    }
+
     #[cfg(feature = "fm")]
     pub fn set_fm_mapper(&mut self, mapper: FmMapper) {
         self.fm_mapper = mapper;

@@ -16,8 +16,8 @@ pub use crate::output::{
 };
 pub use crate::pluck::KarplusPluck;
 pub use crate::synth::{
-    PULSE_25_TABLE, SAW_TABLE, SINE_TABLE, SQUARE_TABLE, TRIANGLE_TABLE, Waveform, WavetableVoice,
-    generate_wavetable_fixed,
+    PULSE_25_TABLE, PolyBlepOscillator, PolyBlepVoice, PolyBlepWaveform, SAW_TABLE, SINE_TABLE,
+    SQUARE_TABLE, TRIANGLE_TABLE, Waveform, WavetableVoice, generate_wavetable_fixed,
 };
 pub use crate::tier::{EffectKind, flags};
 

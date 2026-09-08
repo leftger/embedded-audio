@@ -1,7 +1,9 @@
 use crate::decode::{AdpcmStream, Pcm8Stream};
 use crate::envelope::AdsrSpec;
 use crate::stream::SigmaDeltaBitStream;
-use crate::synth::{FmVoice, ToneParams, ToneVoice, Waveform, WavetableVoice};
+use crate::synth::{
+    FmVoice, PolyBlepVoice, PolyBlepWaveform, ToneParams, ToneVoice, Waveform, WavetableVoice,
+};
 use crate::tier::EffectKind;
 
 /// Active generator for one mixer voice.
@@ -9,6 +11,7 @@ use crate::tier::EffectKind;
 pub enum VoiceSource<'a> {
     Idle,
     Tone(ToneVoice),
+    PolyBlep(PolyBlepVoice),
     Wavetable(WavetableVoice<'a>),
     Fm(FmVoice),
     Pcm8(Pcm8Stream<'a>),
@@ -29,6 +32,7 @@ impl<'a> VoiceSource<'a> {
         match self {
             Self::Idle => false,
             Self::Tone(v) => v.is_active(),
+            Self::PolyBlep(v) => v.is_active(),
             Self::Wavetable(v) => v.is_active(),
             Self::Fm(v) => v.is_active(),
             Self::Pcm8(v) => !v.is_done(),
@@ -44,6 +48,10 @@ impl<'a> VoiceSource<'a> {
                 let hz = v.carrier_hz(sample_rate_hz);
                 if hz == 0 { None } else { Some(hz) }
             }
+            Self::PolyBlep(v) => {
+                let hz = v.carrier_hz();
+                if hz == 0 { None } else { Some(hz) }
+            }
             _ => None,
         }
     }
@@ -52,12 +60,25 @@ impl<'a> VoiceSource<'a> {
         match self {
             Self::Idle => None,
             Self::Tone(v) => v.next_sample(),
+            Self::PolyBlep(v) => v.next_sample(),
             Self::Wavetable(v) => v.next_sample(),
             Self::Fm(v) => v.next_sample(),
             Self::Pcm8(v) => v.next_sample(),
             Self::Adpcm(v) => v.next_sample(),
             Self::SigmaDeltaBits(v) => v.next_sample(),
         }
+    }
+
+    pub fn start_polyblep(
+        &mut self,
+        freq_hz: u32,
+        duration_ms: u16,
+        waveform: PolyBlepWaveform,
+        sample_rate_hz: u32,
+    ) {
+        let mut voice = PolyBlepVoice::new();
+        voice.start(freq_hz, duration_ms, waveform, sample_rate_hz);
+        *self = Self::PolyBlep(voice);
     }
 
     pub fn start_tone(
