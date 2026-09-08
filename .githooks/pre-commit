@@ -35,7 +35,7 @@ cargo check --workspace --all-features
 
 echo "pre-commit: cargo check (no_std target)"
 rustup target add thumbv7em-none-eabihf 2>/dev/null || true
-cargo check --lib -p embedded-audio --no-default-features --target thumbv7em-none-eabihf
+cargo check --lib -p embedded-audio-core --no-default-features --target thumbv7em-none-eabihf
 
 echo "pre-commit: cargo clippy"
 cargo clippy --workspace --all-features -- -W clippy::all

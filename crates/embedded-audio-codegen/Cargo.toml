@@ -10,7 +10,7 @@ keywords = ["embedded", "audio", "codegen", "baker"]
 categories = ["embedded", "development-tools"]
 
 [dependencies]
-embedded-audio = { workspace = true, features = ["std", "fm", "dsp"] }
+embedded-audio-core = { workspace = true, features = ["std", "fm", "dsp"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

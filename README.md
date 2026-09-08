@@ -1,7 +1,7 @@
 # embedded-audio
 
-[![crates.io](https://img.shields.io/crates/v/embedded-audio.svg)](https://crates.io/crates/embedded-audio)
-[![docs.rs](https://img.shields.io/docsrs/embedded-audio)](https://docs.rs/embedded-audio)
+[![crates.io](https://img.shields.io/crates/v/embedded-audio-core.svg)](https://crates.io/crates/embedded-audio-core)
+[![docs.rs](https://img.shields.io/docsrs/embedded-audio-core)](https://docs.rs/embedded-audio-core)
 [![CI](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/leftger/embedded-audio/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/leftger/embedded-audio/branch/main/graph/badge.svg)](https://codecov.io/gh/leftger/embedded-audio)
 [![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
@@ -161,7 +161,7 @@ Enable the optional `dsp` feature to integrate zero-allocation digital signal pr
 
 ```toml
 [dependencies]
-embedded-audio = { version = "0.2.0", features = ["dsp"] }
+embedded-audio-core = { version = "0.2.1", features = ["dsp"] }
 ```
 
 ```rust

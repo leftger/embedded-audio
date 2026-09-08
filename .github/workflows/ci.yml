@@ -80,7 +80,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
-      - run: cargo check -p embedded-audio --lib ${{ env.NO_STD_CARGO_ARGS }} --target ${{ matrix.target }}
+      - run: cargo check -p embedded-audio-core --lib ${{ env.NO_STD_CARGO_ARGS }} --target ${{ matrix.target }}
 
   msrv:
     name: MSRV check
@@ -113,7 +113,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev
       - run: cargo clippy ${{ env.CLIPPY_ARGS }} -- -W clippy::all
       - run: rustup target add ${{ env.NO_STD_TARGET }}
-      - run: cargo clippy -p embedded-audio --lib ${{ env.NO_STD_CARGO_ARGS }} --target ${{ env.NO_STD_TARGET }} -- -W clippy::all
+      - run: cargo clippy -p embedded-audio-core --lib ${{ env.NO_STD_CARGO_ARGS }} --target ${{ env.NO_STD_TARGET }} -- -W clippy::all
 
   test:
     name: Test
@@ -156,7 +156,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo publish -p embedded-audio --dry-run
+      - run: cargo publish -p embedded-audio-core --dry-run
 
   audit:
     name: Security & License Audit
@@ -188,7 +188,7 @@ jobs:
           cargo llvm-cov --workspace --summary-only | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cargo llvm-cov --workspace --lcov --output-path lcov-all.info
-          cargo llvm-cov -p embedded-audio --no-default-features --features fm,dsp --lcov --output-path lcov-nostd.info
+          cargo llvm-cov -p embedded-audio-core --no-default-features --features fm,dsp --lcov --output-path lcov-nostd.info
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
         with:

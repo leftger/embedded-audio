@@ -8,7 +8,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.87"
 authors = ["Gerzain Mata <leftger@gmail.com>"]
@@ -17,9 +17,9 @@ repository = "https://github.com/leftger/embedded-audio"
 readme = "README.md"
 
 [workspace.dependencies]
-embedded-audio = { path = "crates/embedded-audio", default-features = false }
-embedded-audio-codegen = { path = "crates/embedded-audio-codegen" }
-embedded-audio-live = { path = "crates/embedded-audio-live" }
+embedded-audio-core = { path = "crates/embedded-audio", version = "0.2.1", default-features = false }
+embedded-audio-codegen = { path = "crates/embedded-audio-codegen", version = "0.2.1" }
+embedded-audio-live = { path = "crates/embedded-audio-live", version = "0.2.1" }
 
 heapless = "0.9"
 # TODO: pin to a published version once embedded-dsp cuts a release containing StateVariableFilter.

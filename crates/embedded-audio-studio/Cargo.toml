@@ -10,7 +10,7 @@ keywords = ["daw", "audio", "embedded", "chiptune", "studio"]
 categories = ["embedded", "multimedia::audio", "development-tools"]
 
 [dependencies]
-embedded-audio = { workspace = true, features = ["std", "fm", "dsp"] }
+embedded-audio-core = { workspace = true, features = ["std", "fm", "dsp"] }
 embedded-audio-codegen = { workspace = true }
 embedded-audio-live = { workspace = true }
 embedded-dsp = { workspace = true, features = ["std", "libm"] }

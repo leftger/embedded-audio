@@ -1,5 +1,5 @@
 [package]
-name = "embedded-audio"
+name = "embedded-audio-core"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

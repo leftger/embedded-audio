@@ -1057,29 +1057,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "embedded-audio"
-version = "0.2.0"
-dependencies = [
- "embedded-dsp",
- "heapless",
-]
-
-[[package]]
 name = "embedded-audio-codegen"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
- "embedded-audio",
+ "embedded-audio-core",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
 ]
 
 [[package]]
-name = "embedded-audio-live"
-version = "0.2.0"
+name = "embedded-audio-core"
+version = "0.2.1"
 dependencies = [
- "embedded-audio",
+ "embedded-dsp",
+ "heapless",
+]
+
+[[package]]
+name = "embedded-audio-live"
+version = "0.2.1"
+dependencies = [
  "embedded-audio-codegen",
+ "embedded-audio-core",
  "serde",
  "serde_json",
  "thiserror 2.0.20",
@@ -1087,13 +1087,13 @@ dependencies = [
 
 [[package]]
 name = "embedded-audio-studio"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "cpal",
  "eframe",
  "egui_extras",
- "embedded-audio",
  "embedded-audio-codegen",
+ "embedded-audio-core",
  "embedded-audio-live",
  "embedded-dsp",
  "nusb",
