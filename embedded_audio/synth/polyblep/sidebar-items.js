@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["PolyBlepWaveform"],"fn":["poly_blamp","poly_blep"],"struct":["PolyBlepOscillator","PolyBlepVoice"]};

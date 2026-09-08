@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["fm","tone","wavetable"]};
+window.SIDEBAR_ITEMS = {"mod":["fm","polyblep","tone","wavetable"]};
