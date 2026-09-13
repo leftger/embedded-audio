@@ -1,14 +1,10 @@
+# Score only the core embedded-audio crate (crates/embedded-audio). Sibling
+# crates (live, studio, codegen) and non-library trees are excluded from Codecov.
 ignore:
-  - "embedded-audio-studio/**"
-  - "crates/embedded-audio-studio/**"
-  - "**/embedded-audio-studio/**"
-  - "embedded-audio/tools/**"
+  - "crates/embedded-audio-*/**"
   - "crates/embedded-audio/tools/**"
-  - "**/embedded-audio/tools/**"
   - "benches/**"
-  - "**/benches/**"
   - "examples/**"
-  - "**/examples/**"
 
 coverage:
   status:
@@ -16,7 +12,11 @@ coverage:
       default:
         target: auto
         threshold: 1%
+        paths:
+          - crates/embedded-audio
     patch:
       default:
         target: 60%
         threshold: 1%
+        paths:
+          - crates/embedded-audio
