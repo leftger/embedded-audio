@@ -166,3 +166,198 @@ impl Default for Tremolo {
         Self::new()
     }
 }
+
+/// Zero-allocation circular buffer delay line with feedback, one-pole damping lowpass filter, and wet/dry mix.
+///
+/// `SAMPLES` specifies the buffer capacity in samples.
+/// E.g. at 16 kHz sample rate, `SAMPLES = 4000` provides up to 250 ms of delay.
+#[derive(Debug, Clone)]
+pub struct DelayLine<const SAMPLES: usize> {
+    buffer: [i8; SAMPLES],
+    write_pos: usize,
+    delay_samples: usize,
+    feedback_q8: u8,
+    damping_q8: u8,
+    filter_state: i32,
+    wet_q8: u8,
+    dry_q8: u8,
+}
+
+impl<const SAMPLES: usize> DelayLine<SAMPLES> {
+    /// Creates a delay line with specified initial delay in samples.
+    pub const fn new(delay_samples: usize) -> Self {
+        let delay = if delay_samples >= SAMPLES {
+            if SAMPLES == 0 { 0 } else { SAMPLES - 1 }
+        } else {
+            delay_samples
+        };
+        Self {
+            buffer: [0; SAMPLES],
+            write_pos: 0,
+            delay_samples: delay,
+            feedback_q8: 128,
+            damping_q8: 64,
+            filter_state: 0,
+            wet_q8: 128,
+            dry_q8: 255,
+        }
+    }
+
+    /// Set delay length in samples, clamped to `0..SAMPLES`.
+    pub fn set_delay(&mut self, samples: usize) {
+        self.delay_samples = if SAMPLES == 0 {
+            0
+        } else {
+            samples.min(SAMPLES - 1)
+        };
+    }
+
+    /// Delay length in samples.
+    pub const fn delay(&self) -> usize {
+        self.delay_samples
+    }
+
+    /// Set feedback gain `0..=255` (0 = no echo repeats, 255 = sustained self-oscillation).
+    pub fn set_feedback_q8(&mut self, fb_q8: u8) {
+        self.feedback_q8 = fb_q8;
+    }
+
+    /// Set damping filter `0..=255` (0 = bright reflections, 255 = heavily darkened repeats).
+    pub fn set_damping_q8(&mut self, damping_q8: u8) {
+        self.damping_q8 = damping_q8;
+    }
+
+    /// Set wet and dry mix levels in Q8.
+    pub fn set_mix_q8(&mut self, wet_q8: u8, dry_q8: u8) {
+        self.wet_q8 = wet_q8;
+        self.dry_q8 = dry_q8;
+    }
+
+    /// Reset internal delay buffer and filter state to silence.
+    pub fn reset(&mut self) {
+        self.buffer = [0; SAMPLES];
+        self.write_pos = 0;
+        self.filter_state = 0;
+    }
+
+    /// Process one PCM sample through the delay line.
+    pub fn process(&mut self, input: i8) -> i8 {
+        if SAMPLES == 0 {
+            return input;
+        }
+
+        let read_pos = (self.write_pos + SAMPLES - self.delay_samples) % SAMPLES;
+        let delayed = self.buffer[read_pos];
+
+        // One-pole lowpass filter for damping in feedback loop
+        let alpha = 255 - self.damping_q8 as i32;
+        self.filter_state += ((delayed as i32 - self.filter_state) * alpha) / 256;
+        let filtered = self.filter_state;
+
+        // Feedback + input
+        let feedback_sample = (filtered * self.feedback_q8 as i32) / 256;
+        let to_buffer = crate::fixed::soft_limit_i8(input as i32 + feedback_sample);
+        self.buffer[self.write_pos] = to_buffer;
+        self.write_pos = (self.write_pos + 1) % SAMPLES;
+
+        // Wet/dry mix
+        let out =
+            ((input as i32 * self.dry_q8 as i32) + (delayed as i32 * self.wet_q8 as i32)) / 256;
+        crate::fixed::soft_limit_i8(out)
+    }
+}
+
+/// Ramp state for [`AntiPopRamp`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RampState {
+    Muted,
+    RampingUp,
+    Active,
+    RampingDown,
+}
+
+/// Anti-pop soft ramp generator to eliminate startup and shutdown speaker pops/clicks.
+///
+/// Smoothly ramps gain or DC bias over a configurable number of samples (e.g. 5–20 ms)
+/// to prevent mechanical speaker "thumps" and power-down amplifier clicks.
+#[derive(Debug, Clone, Copy)]
+pub struct AntiPopRamp {
+    state: RampState,
+    step: u32,
+    total_steps: u32,
+}
+
+impl AntiPopRamp {
+    /// Create a ramp initialized to `Muted` state with specified duration in samples.
+    pub const fn new(ramp_samples: u32) -> Self {
+        Self {
+            state: RampState::Muted,
+            step: 0,
+            total_steps: if ramp_samples == 0 { 1 } else { ramp_samples },
+        }
+    }
+
+    /// Trigger smooth ramp-up to `Active`.
+    pub fn ramp_up(&mut self) {
+        self.state = RampState::RampingUp;
+    }
+
+    /// Trigger smooth ramp-down to `Muted`.
+    pub fn ramp_down(&mut self) {
+        self.state = RampState::RampingDown;
+    }
+
+    /// Current ramp lifecycle state.
+    pub const fn state(&self) -> RampState {
+        self.state
+    }
+
+    /// True if fully ramped up to `Active`.
+    pub const fn is_active(&self) -> bool {
+        matches!(self.state, RampState::Active)
+    }
+
+    /// True if fully ramped down to `Muted`.
+    pub const fn is_muted(&self) -> bool {
+        matches!(self.state, RampState::Muted)
+    }
+
+    /// Advances the ramp state by one sample tick and returns the current Q8 gain factor (0..=255).
+    pub fn tick_gain_q8(&mut self) -> u8 {
+        match self.state {
+            RampState::Muted => 0,
+            RampState::Active => 255,
+            RampState::RampingUp => {
+                self.step = self.step.saturating_add(1);
+                if self.step >= self.total_steps {
+                    self.step = self.total_steps;
+                    self.state = RampState::Active;
+                    255
+                } else {
+                    ((self.step as u64 * 255) / self.total_steps as u64) as u8
+                }
+            }
+            RampState::RampingDown => {
+                self.step = self.step.saturating_sub(1);
+                if self.step == 0 {
+                    self.state = RampState::Muted;
+                    0
+                } else {
+                    ((self.step as u64 * 255) / self.total_steps as u64) as u8
+                }
+            }
+        }
+    }
+
+    /// Apply soft ramping to a PCM8 sample.
+    pub fn apply(&mut self, sample: i8) -> i8 {
+        let gain = self.tick_gain_q8();
+        crate::fixed::apply_gain_q8(sample, gain)
+    }
+
+    /// Softly ramp a PWM duty cycle from 0 to its target mid-scale idle duty (anti-click on power up).
+    pub fn apply_duty(&mut self, target_duty: u16) -> u16 {
+        let gain = self.tick_gain_q8() as u32;
+        ((target_duty as u32 * gain) / 255) as u16
+    }
+}

@@ -5,10 +5,11 @@ pub use crate::config::{
 pub use crate::engine::{AudioEngine, VoiceStealingPolicy};
 pub use crate::envelope::{Adsr, AdsrSpec};
 pub use crate::error::AudioError;
-pub use crate::fixed::{db_to_q8, q8_to_db};
-pub use crate::fx::{Overdrive, Tremolo, Wavefolder};
+pub use crate::fixed::{db_to_q8, pan_to_gains_q8, q8_to_db, soft_limit_i8, soft_limit_i16};
+pub use crate::fx::{AntiPopRamp, DelayLine, Overdrive, RampState, Tremolo, Wavefolder};
 pub use crate::hal::{
-    DmaDoubleBuffer, DutyBuffer, PwmDutySink, fill_buffer_into, fill_dma_half_buffers, tick_into,
+    AudioProcessor, DmaDoubleBuffer, DutyBuffer, InPlaceAudioProcessor, PwmDutySink,
+    fill_buffer_into, fill_dma_half_buffers, tick_into,
 };
 pub use crate::output::{
     DutyMode, PwmMapper, SigmaDelta, SigmaDelta2ndOrder, pcm_to_dac_u8, pcm_to_dac_u12,
@@ -24,7 +25,10 @@ pub use crate::tier::{EffectKind, flags};
 #[cfg(feature = "dsp")]
 pub use crate::dsp::{
     AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter,
-    BiquadAudioFilterQ15, WindowType,
+    BiquadAudioFilterQ15, CicInterpolator, DynamicCompressor, DynamicsCompressor, EnvelopeFollower,
+    GoertzelDetector, GoertzelDetectorQ15, NoiseGate, PdmDecimator, PeakEnvelopeFollower,
+    PeakEnvelopeFollowerQ15, RmsEnvelopeFollower, RmsEnvelopeFollowerQ15, VadDetectorQ15,
+    WindowType,
 };
 
 #[cfg(feature = "dsp")]

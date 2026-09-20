@@ -14,6 +14,20 @@ use embedded_dsp::{
     rms_f32, var_f32,
 };
 
+// Re-export full embedded-dsp suites for companding, dynamics, speech audio, and multi-rate resampling:
+pub use embedded_dsp::audio::{
+    GoertzelDetectorQ15, PeakEnvelopeFollower, PeakEnvelopeFollowerQ15, RmsEnvelopeFollower,
+    RmsEnvelopeFollowerQ15, VadDetectorQ15, mel_filterbank_f32, mfcc_f32,
+};
+pub use embedded_dsp::companding::{
+    a_law_compress_f32, a_law_expand_f32, alaw_to_linear, linear_to_alaw, linear_to_ulaw,
+    mu_law_compress_f32, mu_law_expand_f32, ulaw_to_linear,
+};
+pub use embedded_dsp::dynamics::{DynamicsCompressor, NoiseGate};
+pub use embedded_dsp::resampling::{
+    CicDecimator as DspCicDecimator, CicInterpolator, resample_linear_f32, resample_linear_q15,
+};
+
 /// Biquad audio filter for real-time sample-by-sample or block filtering.
 #[derive(Clone)]
 pub struct BiquadAudioFilter {
@@ -445,5 +459,207 @@ impl BiquadAudioFilterQ15 {
         let x16 = (x as i16) << 8;
         let y16 = self.process_sample_i16(x16);
         (y16 >> 8) as i8
+    }
+}
+
+/// Peak dynamic range compressor for embedded speakers and microphones.
+#[derive(Debug, Clone)]
+pub struct DynamicCompressor {
+    threshold_linear: f32,
+    ratio: f32,
+    makeup_gain: f32,
+    envelope: f32,
+    attack_coeff: f32,
+    release_coeff: f32,
+}
+
+impl DynamicCompressor {
+    /// Create a new compressor.
+    ///
+    /// - `threshold_db`: level above which compression begins (e.g. -12.0 dB).
+    /// - `ratio`: compression ratio (e.g. 4.0 for 4:1 compression; ratio >= 1.0).
+    /// - `attack_sec`: attack time constant in seconds (e.g. 0.005 for 5 ms).
+    /// - `release_sec`: release time constant in seconds (e.g. 0.100 for 100 ms).
+    /// - `makeup_gain_db`: output makeup gain (e.g. 3.0 dB).
+    /// - `sample_rate_hz`: audio sampling rate in Hz.
+    pub fn new(
+        threshold_db: f32,
+        ratio: f32,
+        attack_sec: f32,
+        release_sec: f32,
+        makeup_gain_db: f32,
+        sample_rate_hz: f32,
+    ) -> Self {
+        let threshold_linear = 10.0f32.powf(threshold_db / 20.0);
+        let makeup_gain = 10.0f32.powf(makeup_gain_db / 20.0);
+        let attack_coeff = (-1.0 / (attack_sec * sample_rate_hz)).exp();
+        let release_coeff = (-1.0 / (release_sec * sample_rate_hz)).exp();
+        Self {
+            threshold_linear,
+            ratio: ratio.max(1.0),
+            makeup_gain,
+            envelope: 0.0,
+            attack_coeff,
+            release_coeff,
+        }
+    }
+
+    /// Reset internal envelope state.
+    pub fn reset(&mut self) {
+        self.envelope = 0.0;
+    }
+
+    /// Process a single floating-point sample in range `[-1.0, 1.0]`.
+    pub fn process_sample(&mut self, input: f32) -> f32 {
+        let input_mag = input.abs();
+        if input_mag > self.envelope {
+            self.envelope =
+                self.attack_coeff * self.envelope + (1.0 - self.attack_coeff) * input_mag;
+        } else {
+            self.envelope =
+                self.release_coeff * self.envelope + (1.0 - self.release_coeff) * input_mag;
+        }
+
+        let gain = if self.envelope > self.threshold_linear && self.envelope > 1e-6 {
+            let over_db = 20.0 * FloatMath::log10(self.envelope / self.threshold_linear);
+            let compressed_over_db = over_db / self.ratio;
+            let reduction_db = over_db - compressed_over_db;
+            10.0f32.powf(-reduction_db / 20.0) * self.makeup_gain
+        } else {
+            self.makeup_gain
+        };
+
+        (input * gain).clamp(-1.0, 1.0)
+    }
+
+    /// Process an audio buffer of floating-point samples in place.
+    pub fn process_buffer(&mut self, samples: &mut [f32]) {
+        for s in samples.iter_mut() {
+            *s = self.process_sample(*s);
+        }
+    }
+
+    /// Process a signed 16-bit PCM sample (-32768..=32767).
+    pub fn process_sample_i16(&mut self, sample: i16) -> i16 {
+        let in_f32 = sample as f32 / 32768.0;
+        let out_f32 = self.process_sample(in_f32);
+        (out_f32 * 32767.0).clamp(-32768.0, 32767.0) as i16
+    }
+
+    /// Process a signed 8-bit PCM sample (-128..=127).
+    pub fn process_sample_i8(&mut self, sample: i8) -> i8 {
+        let in_f32 = sample as f32 / 128.0;
+        let out_f32 = self.process_sample(in_f32);
+        (out_f32 * 127.0).clamp(-128.0, 127.0) as i8
+    }
+}
+
+/// 3rd-order Cascaded Integrator-Comb (CIC) filter for PDM digital microphone decimation.
+///
+/// Converts 1-bit high-frequency PDM bitstreams (from SPI, I2S, or timer capture)
+/// into 16-bit linear PCM audio with zero heap allocation.
+#[derive(Debug, Clone)]
+pub struct PdmDecimator {
+    // 3 Integrator stages (run at high PDM bit rate)
+    i0: i64,
+    i1: i64,
+    i2: i64,
+    // 3 Comb stages (run at decimated PCM rate)
+    d0: i64,
+    d1: i64,
+    d2: i64,
+    decimation_factor: u16,
+    counter: u16,
+    shift: u32,
+}
+
+impl PdmDecimator {
+    /// Create a PDM decimator with specified decimation ratio `M` (e.g. 64 for 1.024 MHz PDM -> 16 kHz PCM).
+    pub fn new(decimation_factor: u16) -> Self {
+        let m = decimation_factor.max(8) as u64;
+        let gain = m * m * m;
+        let mut shift = 0;
+        let mut g = gain;
+        while g > 65536 {
+            g >>= 1;
+            shift += 1;
+        }
+
+        Self {
+            i0: 0,
+            i1: 0,
+            i2: 0,
+            d0: 0,
+            d1: 0,
+            d2: 0,
+            decimation_factor: decimation_factor.max(8),
+            counter: 0,
+            shift,
+        }
+    }
+
+    /// Reset internal filter integrators and delay registers to 0.
+    pub fn reset(&mut self) {
+        self.i0 = 0;
+        self.i1 = 0;
+        self.i2 = 0;
+        self.d0 = 0;
+        self.d1 = 0;
+        self.d2 = 0;
+        self.counter = 0;
+    }
+
+    /// Feed a single PDM 1-bit sample (`true` = logic high, `false` = logic low).
+    /// Returns `Some(pcm_sample)` every `decimation_factor` bits.
+    #[inline]
+    pub fn feed_bit(&mut self, bit: bool) -> Option<i16> {
+        let x: i64 = if bit { 1 } else { -1 };
+
+        // 3 Integrator stages
+        self.i0 = self.i0.wrapping_add(x);
+        self.i1 = self.i1.wrapping_add(self.i0);
+        self.i2 = self.i2.wrapping_add(self.i1);
+
+        self.counter += 1;
+        if self.counter >= self.decimation_factor {
+            self.counter = 0;
+
+            // 3 Comb stages at decimated rate
+            let sample = self.i2;
+            let c0 = sample.wrapping_sub(self.d0);
+            self.d0 = sample;
+
+            let c1 = c0.wrapping_sub(self.d1);
+            self.d1 = c0;
+
+            let c2 = c1.wrapping_sub(self.d2);
+            self.d2 = c1;
+
+            let scaled = (c2 >> self.shift).clamp(-32768, 32767) as i16;
+            Some(scaled)
+        } else {
+            None
+        }
+    }
+
+    /// Process a slice of packed PDM bytes (MSB first, as received from SPI/I2S DMA).
+    ///
+    /// Writes decimated 16-bit PCM samples into `pcm_out` and returns how many samples were written.
+    pub fn process_pdm_bytes(&mut self, pdm_bytes: &[u8], pcm_out: &mut [i16]) -> usize {
+        let mut out_idx = 0;
+        for &byte in pdm_bytes {
+            for bit_idx in (0..8).rev() {
+                let bit = (byte & (1 << bit_idx)) != 0;
+                if let Some(sample) = self.feed_bit(bit) {
+                    if out_idx < pcm_out.len() {
+                        pcm_out[out_idx] = sample;
+                        out_idx += 1;
+                    } else {
+                        return out_idx;
+                    }
+                }
+            }
+        }
+        out_idx
     }
 }

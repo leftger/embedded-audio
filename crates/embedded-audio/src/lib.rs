@@ -74,14 +74,18 @@ pub use config::{
     AudioConfig, DEFAULT_PWM_CARRIER_HZ, DEFAULT_PWM_PERIOD, DEFAULT_SAMPLE_RATE_HZ,
     crossfade_step_q8,
 };
-pub use decode::{AdpcmDecoder, AdpcmStream, Pcm8Stream};
+pub use decode::{
+    AdpcmDecoder, AdpcmStream, G711Format, G711Stream, Pcm8Stream, g711_alaw_decode,
+    g711_alaw_encode, g711_ulaw_decode, g711_ulaw_encode,
+};
 pub use engine::{AudioEngine, VoiceStealingPolicy};
 pub use envelope::{Adsr, AdsrSpec};
 pub use error::AudioError;
-pub use fixed::{db_to_q8, q8_to_db};
-pub use fx::{Overdrive, Tremolo, Wavefolder};
+pub use fixed::{db_to_q8, pan_to_gains_q8, q8_to_db, soft_limit_i8, soft_limit_i16};
+pub use fx::{AntiPopRamp, DelayLine, Overdrive, RampState, Tremolo, Wavefolder};
 pub use hal::{
-    DmaDoubleBuffer, DutyBuffer, PwmDutySink, fill_buffer_into, fill_dma_half_buffers, tick_into,
+    AudioProcessor, DmaDoubleBuffer, DutyBuffer, InPlaceAudioProcessor, PwmDutySink,
+    fill_buffer_into, fill_dma_half_buffers, tick_into,
 };
 pub use output::{
     DutyMode, PwmMapper, SigmaDelta, SigmaDelta2ndOrder, pcm_to_dac_u8, pcm_to_dac_u12,
@@ -109,7 +113,10 @@ pub use profile::markham;
 #[cfg(feature = "dsp")]
 pub use dsp::{
     AudioLmsFilter, AudioMeter, AudioSpectrumAnalyzer, AudioStats, BiquadAudioFilter,
-    BiquadAudioFilterQ15, EnvelopeFollower, GoertzelDetector, WindowType,
+    BiquadAudioFilterQ15, CicInterpolator, DynamicCompressor, DynamicsCompressor, EnvelopeFollower,
+    GoertzelDetector, GoertzelDetectorQ15, NoiseGate, PdmDecimator, PeakEnvelopeFollower,
+    PeakEnvelopeFollowerQ15, RmsEnvelopeFollower, RmsEnvelopeFollowerQ15, VadDetectorQ15,
+    WindowType,
 };
 
 #[cfg(feature = "dsp")]

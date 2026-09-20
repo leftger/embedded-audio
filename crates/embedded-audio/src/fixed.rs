@@ -58,6 +58,62 @@ pub fn clamp_sample(v: i32) -> i8 {
     v.clamp(-128, 127) as i8
 }
 
+/// Calculate Left and Right Q8 gains from a pan value (0 = Full Left, 128 = Center, 255 = Full Right).
+///
+/// Preserves unity gain when centered (255, 255) and linearly attenuates the opposite channel.
+#[inline]
+pub const fn pan_to_gains_q8(pan_q8: u8) -> (u8, u8) {
+    if pan_q8 <= 128 {
+        let right = ((pan_q8 as u16 * 255) / 128) as u8;
+        (255, right)
+    } else {
+        let left = (((255 - pan_q8 as u16) * 255) / 127) as u8;
+        (left, 255)
+    }
+}
+
+/// Smooth rational soft limiter for summing audio bus into 8-bit PCM (-128..=127).
+///
+/// Linear within ±96, then smoothly saturates towards ±127/128 without harsh square clipping.
+#[inline]
+pub fn soft_limit_i8(sum: i32) -> i8 {
+    if sum > 96 {
+        let excess = sum - 96;
+        let compressed = (excess * 31) / (excess + 31);
+        (96 + compressed).clamp(-128, 127) as i8
+    } else if sum < -96 {
+        let excess = -sum - 96;
+        let compressed = (excess * 32) / (excess + 32);
+        (-96 - compressed).clamp(-128, 127) as i8
+    } else {
+        sum as i8
+    }
+}
+
+/// Smooth rational soft limiter for summing audio bus into 16-bit PCM (-32768..=32767).
+///
+/// Linear up to ±24576 (75% full-scale), then smoothly saturates towards ±32767 without harsh square clipping.
+#[inline]
+pub fn soft_limit_i16(sum: i32) -> i16 {
+    const THRESHOLD: i32 = 24576;
+    const MARGIN_POS: i32 = 32767 - THRESHOLD;
+    const MARGIN_NEG: i32 = 32768 - THRESHOLD;
+
+    if sum > THRESHOLD {
+        let excess = sum - THRESHOLD;
+        let compressed =
+            ((excess as i64 * MARGIN_POS as i64) / (excess as i64 + MARGIN_POS as i64)) as i32;
+        (THRESHOLD + compressed).clamp(-32768, 32767) as i16
+    } else if sum < -THRESHOLD {
+        let excess = -sum - THRESHOLD;
+        let compressed =
+            ((excess as i64 * MARGIN_NEG as i64) / (excess as i64 + MARGIN_NEG as i64)) as i32;
+        (-THRESHOLD - compressed).clamp(-32768, 32767) as i16
+    } else {
+        sum as i16
+    }
+}
+
 /// Convert decibel value (-48.0 dB .. 0.0 dB) to Q8 gain (0 ..= 255).
 ///
 /// 0.0 dB maps to 255 (1.0x).

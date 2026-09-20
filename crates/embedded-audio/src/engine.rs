@@ -104,6 +104,18 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
         self.voices.get_mut(idx)
     }
 
+    /// Set stereo pan for a specific voice (0 = Full Left, 128 = Center, 255 = Full Right).
+    pub fn set_voice_pan(&mut self, idx: usize, pan_q8: u8) {
+        if let Some(v) = self.voices.get_mut(idx) {
+            v.set_pan_q8(pan_q8);
+        }
+    }
+
+    /// Get current stereo pan for a voice.
+    pub fn voice_pan(&self, idx: usize) -> Option<u8> {
+        self.voices.get(idx).map(|v| v.pan_q8())
+    }
+
     pub fn set_bank(&mut self, bank: SoundBank<'a>) {
         let rate = bank.sample_rate_hz;
         self.config.sample_rate_hz = rate;
@@ -236,6 +248,7 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
             self.voices[0].source = self.voices[1].source;
             self.voices[0].set_gain_q8(self.voices[1].gain_q8());
             self.voices[0].priority = self.voices[1].priority;
+            self.voices[0].pan_q8 = self.voices[1].pan_q8;
             self.voices[1].stop_immediate();
             self.crossfade_active = false;
             self.crossfade_t_q8 = 0;
@@ -426,6 +439,62 @@ impl<'a, const N: usize> AudioEngine<'a, N> {
             out[i * 2 + 1] = sample;
         }
         mono_count * 2
+    }
+
+    /// One stereo audio sample tick: returns `(left_pcm, right_pcm)` after per-voice panning and soft limiting.
+    pub fn tick_stereo_pcm(&mut self) -> (i8, i8) {
+        self.advance_crossfade();
+        for v in &mut self.voices {
+            v.tick_envelope();
+        }
+
+        if N == 0 {
+            return (0, 0);
+        }
+
+        let mut sum_l: i32 = 0;
+        let mut sum_r: i32 = 0;
+
+        for v in &mut self.voices {
+            if let Some((l, r)) = v.next_stereo_sample() {
+                sum_l += l as i32;
+                sum_r += r as i32;
+            }
+        }
+
+        let out_l = apply_gain_q8(limit_bus(sum_l), self.config.master_gain_q8);
+        let out_r = apply_gain_q8(limit_bus(sum_r), self.config.master_gain_q8);
+        (out_l, out_r)
+    }
+
+    /// One stereo audio sample tick converted to signed 16-bit PCM `(left_i16, right_i16)`.
+    pub fn tick_stereo_i16(&mut self) -> (i16, i16) {
+        let (l, r) = self.tick_stereo_pcm();
+        (pcm_to_i16(l), pcm_to_i16(r))
+    }
+
+    /// Fill an interleaved stereo 16-bit PCM buffer with true per-voice stereo panning.
+    ///
+    /// `out` must have an even length (`mono_frames * 2`). Writes `[L0, R0, L1, R1, ...]`.
+    pub fn fill_stereo_panned_i16_buffer(&mut self, out: &mut [i16]) -> usize {
+        let frame_count = out.len() / 2;
+        for i in 0..frame_count {
+            let (l, r) = self.tick_stereo_i16();
+            out[i * 2] = l;
+            out[i * 2 + 1] = r;
+        }
+        frame_count * 2
+    }
+
+    /// Fill an interleaved stereo 8-bit PCM buffer with true per-voice stereo panning.
+    pub fn fill_stereo_panned_i8_buffer(&mut self, out: &mut [i8]) -> usize {
+        let frame_count = out.len() / 2;
+        for i in 0..frame_count {
+            let (l, r) = self.tick_stereo_pcm();
+            out[i * 2] = l;
+            out[i * 2 + 1] = r;
+        }
+        frame_count * 2
     }
 
     /// Generic buffer filling using a custom sample mapping closure.

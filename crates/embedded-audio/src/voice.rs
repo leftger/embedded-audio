@@ -9,6 +9,7 @@ pub struct Voice<'a> {
     adsr: Adsr,
     gain_q8: u8,
     pub priority: u8,
+    pub pan_q8: u8,
     sample_rate_hz: u32,
 }
 
@@ -19,6 +20,7 @@ impl<'a> Voice<'a> {
             adsr: Adsr::new(AdsrSpec::click(), sample_rate_hz),
             gain_q8: 255,
             priority: 0,
+            pan_q8: 128,
             sample_rate_hz,
         }
     }
@@ -29,6 +31,14 @@ impl<'a> Voice<'a> {
 
     pub fn gain_q8(self) -> u8 {
         self.gain_q8
+    }
+
+    pub fn set_pan_q8(&mut self, pan_q8: u8) {
+        self.pan_q8 = pan_q8;
+    }
+
+    pub fn pan_q8(&self) -> u8 {
+        self.pan_q8
     }
 
     pub fn trigger_adsr(&mut self, spec: AdsrSpec) {
@@ -62,5 +72,14 @@ impl<'a> Voice<'a> {
         let env = self.adsr.level_q8();
         let s = apply_gain_q8(raw, env);
         Some(apply_gain_q8(s, self.gain_q8))
+    }
+
+    /// Stereo sample pair `(Left, Right)` after envelope, voice gain, and stereo panning.
+    pub fn next_stereo_sample(&mut self) -> Option<(i8, i8)> {
+        let s = self.next_sample()?;
+        let (gain_l, gain_r) = crate::fixed::pan_to_gains_q8(self.pan_q8);
+        let left = apply_gain_q8(s, gain_l);
+        let right = apply_gain_q8(s, gain_r);
+        Some((left, right))
     }
 }

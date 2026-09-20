@@ -107,6 +107,7 @@ engine.fill_dac_u12_buffer(&mut dac_u12_buf);  // 12-bit DACs (0..=4095, e.g. ST
 engine.fill_dac_u16_buffer(&mut dac_u16_buf);  // 16-bit DACs (0..=65535)
 engine.fill_pcm_i16_buffer(&mut pcm_i16_buf);  // Signed 16-bit PCM (-32768..=32767)
 engine.fill_stereo_i16_buffer(&mut stereo_buf);// Interleaved stereo i16 for I2S/SAI
+engine.fill_stereo_panned_i16_buffer(&mut panned_buf); // True stereo with per-voice panning (0=L..255=R)
 ```
 
 ## Embassy Async DMA Integration
@@ -194,7 +195,25 @@ let (peak_freq_hz, peak_mag) = AudioSpectrumAnalyzer::find_peak_frequency(
     16000.0,
     WindowType::Hanning,
 );
+
+// 4. Peak Dynamic Range Compressor (protect small speakers & prevent clipping)
+let mut comp = DynamicCompressor::new(-12.0, 4.0, 0.005, 0.050, 2.0, 16000.0);
+comp.process_buffer(&mut frame);
+
+// 5. PDM Microphone Demodulation (decimate 1-bit MEMS microphone stream to 16-bit PCM)
+let mut pdm = PdmDecimator::new(64); // 64x decimation: 1.024 MHz PDM -> 16 kHz PCM
+let mut pcm_mic = [0i16; 32];
+pdm.process_pdm_bytes(&pdm_dma_buffer, &mut pcm_mic);
 ```
+
+## Lightweight Core Effects & Audio IO
+
+- **Stereo Spatial Panning**: Set `engine.set_voice_pan(voice, pan_q8)` (`0` = Full Left, `128` = Center, `255` = Full Right) and fill with `engine.fill_stereo_panned_i16_buffer(...)`.
+- **Soft Saturation Limiter**: Replaces hard digital clipping with smooth rational soft saturation on the mix bus (`soft_limit_i8`, `soft_limit_i16`).
+- **Ring Delay Line**: Circular-buffer echo/delay with one-pole damping filter and wet/dry mix: `DelayLine::<2048>::new(1000)`.
+- **Anti-Pop Soft Ramping**: Soft gain/bias ramping on startup and sleep to eliminate speaker "pop" and "click" artifacts (`AntiPopRamp`).
+- **ITU-T G.711 Speech Companding**: 8-bit logarithmic µ-law and A-law codecs for IoT intercoms and speech (`G711Stream`, `g711_ulaw_decode`, `g711_alaw_decode`).
+- **Full-Duplex Audio Processor**: Generic `AudioProcessor<T>` and `InPlaceAudioProcessor<T>` streaming traits for microphones and effects.
 
 ## Features
 

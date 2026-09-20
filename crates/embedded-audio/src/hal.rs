@@ -134,3 +134,15 @@ impl<T: Copy + Default, const N: usize> Default for DmaDoubleBuffer<T, N> {
         Self::new()
     }
 }
+
+/// Full-duplex block audio processor trait for streaming inputs (microphones, line-in) to outputs (DAC/I2S).
+pub trait AudioProcessor<T> {
+    /// Process a block of samples from `input` into `output`.
+    fn process_frame(&mut self, input: &[T], output: &mut [T]);
+}
+
+/// In-place audio effect processor trait (DSP filters, noise gates, saturators).
+pub trait InPlaceAudioProcessor<T> {
+    /// Process audio samples in-place within the buffer.
+    fn process_in_place(&mut self, buffer: &mut [T]);
+}

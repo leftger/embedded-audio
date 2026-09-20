@@ -4,7 +4,7 @@ pub mod fm;
 #[cfg(feature = "fm")]
 pub use fm::{FmMapper, FmTick};
 
-use crate::fixed::clamp_sample;
+use crate::fixed::soft_limit_i8;
 
 /// How PCM is converted to a PWM compare value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -120,7 +120,7 @@ impl PwmMapper {
 /// Soft limiter before mix bus.
 #[inline]
 pub fn limit_bus(sum: i32) -> i8 {
-    clamp_sample(sum)
+    soft_limit_i8(sum)
 }
 
 /// Convert signed 8-bit PCM (-128..=127) to signed 16-bit PCM (-32768..=32767).
