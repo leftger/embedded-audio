@@ -5,6 +5,16 @@ members = [
     "crates/embedded-audio-codegen",
     "crates/embedded-audio-live",
     "crates/embedded-audio-studio",
+    "examples/stm32wba65ri-pwm-audio",
+]
+# The firmware example targets thumbv8m and cannot be built for the host, so it
+# is excluded from the default workspace build. Build it explicitly with
+# `cargo check -p stm32wba65ri-pwm-audio --target thumbv8m.main-none-eabihf`.
+default-members = [
+    "crates/embedded-audio",
+    "crates/embedded-audio-codegen",
+    "crates/embedded-audio-live",
+    "crates/embedded-audio-studio",
 ]
 
 [workspace.package]

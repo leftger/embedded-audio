@@ -31,16 +31,18 @@ cargo fmt --all
 git add -- "${rust_related[@]}"
 
 echo "pre-commit: cargo check (all-features)"
-cargo check --workspace --all-features
+# The firmware example cannot build for the host target, so keep it out of the
+# workspace-wide host checks (CI does the same and has a dedicated job for it).
+cargo check --workspace --all-features --exclude stm32wba65ri-pwm-audio
 
 echo "pre-commit: cargo check (no_std target)"
 rustup target add thumbv7em-none-eabihf 2>/dev/null || true
 cargo check --lib -p embedded-audio-core --no-default-features --target thumbv7em-none-eabihf
 
 echo "pre-commit: cargo clippy"
-cargo clippy --workspace --all-features -- -W clippy::all
+cargo clippy --workspace --all-features --exclude stm32wba65ri-pwm-audio -- -W clippy::all
 
 echo "pre-commit: cargo test"
-cargo test --workspace
+cargo test --workspace --exclude stm32wba65ri-pwm-audio
 
 echo "pre-commit: ok"

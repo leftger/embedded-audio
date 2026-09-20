@@ -1,0 +1,55 @@
+[package]
+name = "stm32wba65ri-pwm-audio"
+description = "Showcase: DMA-driven PWM audio on the STM32WBA65RI (NUCLEO-WBA65RI) with embassy"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+# Firmware examples are not published.
+publish = false
+
+[[bin]]
+name = "stm32wba65ri-pwm-audio"
+path = "src/main.rs"
+
+[dependencies]
+embedded-audio-core = { workspace = true }
+
+# `embassy-*` track git `main` rather than crates.io: the newest published
+# `embassy-stm32` is 0.6.0 (March 2026) and trails `main` by months.
+#
+# All four embassy crates MUST come from the same branch. If they come from
+# different sources, cargo resolves two copies of `embassy-time`/`embassy-sync`
+# and their types (Instant, Spawner, Channel, ...) stop being interchangeable.
+#
+# Tracking `main` is intentional (there is no `rev` pin), so an upstream change
+# can break the build; add a `rev = "<sha>"` to all four lines if you need
+# reproducible firmware builds.
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = [
+    "platform-cortex-m",
+    "executor-thread",
+    "defmt",
+] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = [
+    "defmt",
+    "defmt-timestamp-uptime",
+    "tick-hz-32_768",
+] }
+embassy-sync = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = ["defmt"] }
+embassy-stm32 = { git = "https://github.com/embassy-rs/embassy", branch = "main", features = [
+    "stm32wba65ri",
+    # Generate `memory.x` from the chip metadata instead of hand-writing it.
+    "memory-x",
+    "time-driver-any",
+    "exti",
+    "defmt",
+] }
+
+cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7"
+defmt = "1"
+defmt-rtt = "1"
+panic-probe = { version = "1", features = ["print-defmt"] }
+static_cell = "2"

@@ -1,6 +1,16 @@
 # Embassy & Hardware Peripherals Integration Guide
 
-This directory contains examples for driving hardware peripherals (DAC, PWM, I2S/SAI) using `embedded-audio` and `embassy-stm32` with DMA on microcontrollers such as the **STM32U585CIU6**.
+This directory contains examples for driving hardware peripherals (DAC, PWM, I2S/SAI) using `embedded-audio` and `embassy-stm32` with DMA on microcontrollers such as the **STM32U585CIU6** and **STM32WBA65RI**.
+
+## Buildable firmware example: STM32WBA65RI + GPDMA
+
+The snippets in this file are illustrative. For a complete, compilable,
+flashable project see [`examples/stm32wba65ri-pwm-audio`](../../../examples/stm32wba65ri-pwm-audio):
+a continuous 32 kHz PWM carrier on `TIM3_CH1` (PA2) fed from an
+`embassy-stm32` **GPDMA ring buffer** (`SimplePwmChannel::into_ring_buffered_channel`
++ `write_exact().await`), plus a button-driven cue queue, an 8-voice mixer, and
+a voice-lifecycle manager. Build it with
+`cargo build -p stm32wba65ri-pwm-audio --target thumbv8m.main-none-eabihf`.
 
 ## Running host examples
 

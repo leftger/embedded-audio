@@ -14,6 +14,7 @@
 - [`crates/embedded-audio-codegen`](crates/embedded-audio-codegen): Rust `no_std` song & bank generators, C/C++ headers, and `.eaf` binary format compilers.
 - [`crates/embedded-audio-live`](crates/embedded-audio-live): Hardware-in-the-loop streaming protocol over USB CDC / Serial UART.
 - [`crates/embedded-audio-studio`](crates/embedded-audio-studio): Interactive desktop DAW with modern Piano-Roll & Step-Sequencer, Synth Lab, real-time Oscilloscope, PWM/ΣΔ pulse density stream visualizer, FFT spectrum analyzer, and MCU profiler.
+- [`examples/stm32wba65ri-pwm-audio`](examples/stm32wba65ri-pwm-audio): Buildable `no_std` firmware showcase — PWM audio over an embassy-stm32 GPDMA ring buffer on an STM32WBA65RI.
 
 ### Running the DAW Studio
 
@@ -127,7 +128,12 @@ loop {
 }
 ```
 
-See [examples/embassy_stm32u585.rs](examples/embassy_stm32u585.rs) for a complete Embassy STM32U585CIU6 hardware example.
+For a complete, buildable hardware example see
+[`examples/stm32wba65ri-pwm-audio`](examples/stm32wba65ri-pwm-audio): PWM audio
+on an STM32WBA65RI over an `embassy-stm32` **GPDMA ring buffer**
+(`SimplePwmChannel::into_ring_buffered_channel` + `write_exact().await`), with
+button-driven sound cues and an 8-voice mixer. The STM32U585 DAC snippet lives in
+[`crates/embedded-audio/examples/README.md`](crates/embedded-audio/examples/README.md).
 
 ## Wavetables & Synthesizers
 

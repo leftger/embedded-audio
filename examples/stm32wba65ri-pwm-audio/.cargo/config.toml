@@ -1,0 +1,11 @@
+# Applied when building from *this* directory (cargo reads `.cargo/config.toml`
+# relative to the current working directory, not the package root). From the
+# repository root pass `--target thumbv8m.main-none-eabihf` explicitly.
+[build]
+target = "thumbv8m.main-none-eabihf"
+
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+runner = "probe-rs run --chip STM32WBA65RI"
+
+[env]
+DEFMT_LOG = "info"
