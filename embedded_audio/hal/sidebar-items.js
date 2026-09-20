@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["fill_buffer_into","fill_dma_half_buffers","tick_into"],"struct":["DmaDoubleBuffer","DutyBuffer"],"trait":["PwmDutySink"]};
+window.SIDEBAR_ITEMS = {"fn":["fill_buffer_into","fill_dma_half_buffers","tick_into"],"struct":["DmaDoubleBuffer","DutyBuffer"],"trait":["AudioProcessor","InPlaceAudioProcessor","PwmDutySink"]};

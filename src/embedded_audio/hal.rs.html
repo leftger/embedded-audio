@@ -134,4 +134,16 @@
 <a href=#134 id=134 data-nosnippet>134</a>        <span class="self">Self</span>::new()
 <a href=#135 id=135 data-nosnippet>135</a>    }
 <a href=#136 id=136 data-nosnippet>136</a>}
+<a href=#137 id=137 data-nosnippet>137</a>
+<a href=#138 id=138 data-nosnippet>138</a><span class="doccomment">/// Full-duplex block audio processor trait for streaming inputs (microphones, line-in) to outputs (DAC/I2S).
+<a href=#139 id=139 data-nosnippet>139</a></span><span class="kw">pub trait </span>AudioProcessor&lt;T&gt; {
+<a href=#140 id=140 data-nosnippet>140</a>    <span class="doccomment">/// Process a block of samples from `input` into `output`.
+<a href=#141 id=141 data-nosnippet>141</a>    </span><span class="kw">fn </span>process_frame(<span class="kw-2">&amp;mut </span><span class="self">self</span>, input: <span class="kw-2">&amp;</span>[T], output: <span class="kw-2">&amp;mut </span>[T]);
+<a href=#142 id=142 data-nosnippet>142</a>}
+<a href=#143 id=143 data-nosnippet>143</a>
+<a href=#144 id=144 data-nosnippet>144</a><span class="doccomment">/// In-place audio effect processor trait (DSP filters, noise gates, saturators).
+<a href=#145 id=145 data-nosnippet>145</a></span><span class="kw">pub trait </span>InPlaceAudioProcessor&lt;T&gt; {
+<a href=#146 id=146 data-nosnippet>146</a>    <span class="doccomment">/// Process audio samples in-place within the buffer.
+<a href=#147 id=147 data-nosnippet>147</a>    </span><span class="kw">fn </span>process_in_place(<span class="kw-2">&amp;mut </span><span class="self">self</span>, buffer: <span class="kw-2">&amp;mut </span>[T]);
+<a href=#148 id=148 data-nosnippet>148</a>}
 </code></pre></div></section></main></body></html>

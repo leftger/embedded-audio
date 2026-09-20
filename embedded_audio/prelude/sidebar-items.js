@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {};
+window.SIDEBAR_ITEMS = {"struct":["CicInterpolator","DynamicsCompressor","GoertzelDetectorQ15","NoiseGate","PeakEnvelopeFollower","PeakEnvelopeFollowerQ15","RmsEnvelopeFollower","RmsEnvelopeFollowerQ15","VadDetectorQ15"]};

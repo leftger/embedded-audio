@@ -4,7 +4,7 @@
 <a href=#4 id=4 data-nosnippet>4</a><span class="attr">#[cfg(feature = <span class="string">"fm"</span>)]
 <a href=#5 id=5 data-nosnippet>5</a></span><span class="kw">pub use </span>fm::{FmMapper, FmTick};
 <a href=#6 id=6 data-nosnippet>6</a>
-<a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span><span class="kw">crate</span>::fixed::clamp_sample;
+<a href=#7 id=7 data-nosnippet>7</a><span class="kw">use </span><span class="kw">crate</span>::fixed::soft_limit_i8;
 <a href=#8 id=8 data-nosnippet>8</a>
 <a href=#9 id=9 data-nosnippet>9</a><span class="doccomment">/// How PCM is converted to a PWM compare value.
 <a href=#10 id=10 data-nosnippet>10</a></span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -120,7 +120,7 @@
 <a href=#120 id=120 data-nosnippet>120</a><span class="doccomment">/// Soft limiter before mix bus.
 <a href=#121 id=121 data-nosnippet>121</a></span><span class="attr">#[inline]
 <a href=#122 id=122 data-nosnippet>122</a></span><span class="kw">pub fn </span>limit_bus(sum: i32) -&gt; i8 {
-<a href=#123 id=123 data-nosnippet>123</a>    clamp_sample(sum)
+<a href=#123 id=123 data-nosnippet>123</a>    soft_limit_i8(sum)
 <a href=#124 id=124 data-nosnippet>124</a>}
 <a href=#125 id=125 data-nosnippet>125</a>
 <a href=#126 id=126 data-nosnippet>126</a><span class="doccomment">/// Convert signed 8-bit PCM (-128..=127) to signed 16-bit PCM (-32768..=32767).

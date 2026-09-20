@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["Overdrive","Tremolo","Wavefolder"]};
+window.SIDEBAR_ITEMS = {"enum":["RampState"],"struct":["AntiPopRamp","DelayLine","Overdrive","Tremolo","Wavefolder"]};
